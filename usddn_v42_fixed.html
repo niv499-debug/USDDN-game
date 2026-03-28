@@ -1,0 +1,2773 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>USDDN פריזבי כלבני - CoolDog</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Rubik:wght@400;700;900&display=swap');
+:root { --gold:#d4a017; --gold-glow:rgba(212,160,23,0.6); }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{overflow:hidden;background:#050810;touch-action:none;font-family:'Rubik',sans-serif;user-select:none;}
+canvas#c{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;}
+#vignette{display:none;}
+#pfx{position:fixed;inset:0;pointer-events:none;z-index:6;}
+
+#top-bar{position:fixed;top:0;left:0;width:100%;display:none;justify-content:space-between;align-items:flex-start;padding:16px 22px;z-index:50;pointer-events:none;}
+.hud-panel{background:linear-gradient(135deg,rgba(0,0,0,0.84),rgba(8,14,28,0.76));border:1px solid rgba(212,160,23,0.35);border-radius:3px;padding:8px 22px;backdrop-filter:blur(14px);box-shadow:0 4px 24px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.04);position:relative;overflow:hidden;}
+.hud-panel::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.45;}
+.hud-label{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(212,160,23,0.75);text-transform:uppercase;text-align:center;}
+.hud-value{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;color:#fff;text-align:center;line-height:1;text-shadow:0 0 18px rgba(255,255,255,0.25);}
+.hud-value.danger{color:#ff4444;animation:dangerBlink 0.5s infinite;}
+@keyframes dangerBlink{0%,100%{opacity:1}50%{opacity:0.55}}
+#pause-btn{pointer-events:auto;width:44px;height:44px;border-radius:3px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.13);color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+#pause-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+#zone-bar{position:fixed;top:92px;left:50%;transform:translateX(-50%);display:none;gap:5px;z-index:50;pointer-events:none;align-items:center;}
+.zone-pip{width:30px;height:6px;border-radius:3px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);transition:all 0.3s;}
+.zone-pip.active{background:var(--gold);box-shadow:0 0 10px var(--gold-glow);border-color:var(--gold);}
+#zone-label{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-right:8px;}
+
+#controls-layer{position:fixed;bottom:28px;width:100%;display:none;justify-content:space-between;padding:0 36px;align-items:flex-end;z-index:50;pointer-events:none;}
+#joystick-container{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,0.07),rgba(0,0,0,0.32));border:1.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;pointer-events:auto;position:relative;backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.07);}
+#joystick-knob{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.92),rgba(175,175,175,0.65));box-shadow:0 4px 18px rgba(0,0,0,0.72);position:absolute;}
+#btn-throw{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;pointer-events:auto;background:radial-gradient(circle at 40% 35%,#d4691e,#8b2500);border:2px solid rgba(255,255,255,0.18);box-shadow:0 8px 32px rgba(0,0,0,0.6);opacity:0.32;transform:scale(0.82);transition:opacity 0.3s,transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275),box-shadow 0.3s;}
+#btn-throw.ready{opacity:1;transform:scale(1);border-color:var(--gold);animation:throwGlow 2s ease-in-out infinite;}
+@keyframes throwGlow{0%,100%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 22px rgba(212,160,23,0.4);}50%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 52px rgba(212,160,23,0.85);}}
+#btn-throw:active{transform:scale(0.93);}
+@keyframes sosPulse{0%{box-shadow:0 0 0 0 rgba(231,76,60,0.85);}70%{box-shadow:0 0 0 22px rgba(231,76,60,0);}100%{box-shadow:0 0 0 0 rgba(231,76,60,0);}}
+
+#status-msg{position:fixed;bottom:158px;left:50%;transform:translateX(-50%);font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:2px;color:rgba(255,255,255,0.92);pointer-events:none;background:rgba(0,0,0,0.62);backdrop-filter:blur(12px);padding:9px 26px;border-radius:2px;border-left:2px solid var(--gold);border-right:2px solid var(--gold);white-space:nowrap;opacity:0;transition:opacity 0.35s;z-index:50;}
+#status-msg.visible{opacity:1;}
+#announcer{position:fixed;top:36%;width:100%;text-align:center;font-family:'Oswald',sans-serif;font-size:56px;font-weight:700;letter-spacing:5px;text-transform:uppercase;pointer-events:none;opacity:0;transform:scale(0.45) translateY(28px);transition:all 0.38s cubic-bezier(0.175,0.885,0.32,1.275);z-index:50;text-shadow:0 4px 20px rgba(0,0,0,0.95);}
+#announcer.pop{opacity:1;transform:scale(1.06) translateY(0);}
+#score-flash{position:fixed;top:90px;right:22px;z-index:55;pointer-events:none;font-family:'Oswald',sans-serif;font-size:38px;font-weight:700;color:var(--gold);text-shadow:0 0 22px var(--gold-glow);opacity:0;}
+#score-flash.show{animation:sfRise 1.2s ease-out forwards;}
+@keyframes sfRise{0%{opacity:1;transform:translateY(0) scale(1.35);}100%{opacity:0;transform:translateY(-72px) scale(0.9);}}
+
+.modal{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,rgba(3,6,14,0.98),rgba(7,14,30,0.97));display:none;flex-direction:column;align-items:center;justify-content:center;color:white;}
+.modal.active{display:flex;}
+.modal::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 65% 40% at 50% 0%,rgba(212,160,23,0.09) 0%,transparent 65%),radial-gradient(ellipse 40% 25% at 20% 100%,rgba(41,128,185,0.07) 0%,transparent 55%);}
+.gold-line{width:160px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px 0;}
+.modal h2{font-family:'Oswald',sans-serif;font-size:42px;font-weight:700;letter-spacing:7px;text-transform:uppercase;color:var(--gold);margin-bottom:2px;text-align:center;text-shadow:0 0 45px var(--gold-glow);}
+.modal .subtitle{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:6px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:18px;}
+.business-badge{text-align:center;padding:12px 32px;margin-bottom:22px;border-top:1px solid rgba(212,160,23,0.18);border-bottom:1px solid rgba(212,160,23,0.18);}
+.business-name{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;letter-spacing:9px;color:#fff;text-transform:uppercase;}
+.owner-info{font-size:13px;color:var(--gold);margin-top:4px;opacity:0.85;}
+.char-grid{display:flex;gap:13px;margin-bottom:26px;flex-wrap:wrap;justify-content:center;}
+.char-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.22s;width:108px;position:relative;overflow:hidden;}
+.char-card:hover,.char-card.selected{border-color:rgba(212,160,23,0.55);background:rgba(212,160,23,0.07);transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 22px rgba(212,160,23,0.18);}
+.char-card.selected::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.char-icon{font-size:46px;margin-bottom:7px;}
+.char-name{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.char-desc{font-size:11px;color:rgba(255,255,255,0.42);margin-top:5px;line-height:1.4;}
+.btn{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:5px;text-transform:uppercase;background:linear-gradient(135deg,#1a5a2a,#0d3a1a);color:var(--gold);border:1px solid rgba(212,160,23,0.42);padding:14px 50px;border-radius:2px;cursor:pointer;margin:8px;box-shadow:0 4px 22px rgba(0,0,0,0.55);transition:all 0.2s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.65),0 0 22px rgba(212,160,23,0.22);}
+.btn:active{transform:scale(0.97);}
+.btn-ghost{background:transparent;border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.55);}
+#leaderboard{width:84%;max-width:440px;background:rgba(0,0,0,0.42);border:1px solid rgba(212,160,23,0.18);border-radius:2px;padding:16px;margin-top:14px;max-height:165px;overflow-y:auto;}
+#leaderboard h3{font-family:'Oswald',sans-serif;letter-spacing:4px;font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;text-transform:uppercase;}
+.score-entry{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:14px;}
+input{font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:3px;padding:12px 22px;border-radius:2px;text-align:center;margin-bottom:14px;width:240px;background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(212,160,23,0.3);outline:none;transition:border-color 0.2s;}
+input:focus{border-color:var(--gold);}
+input::placeholder{color:rgba(255,255,255,0.28);}
+.desktop-hint{font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.22);margin-top:12px;}
+.diff-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.diff-card.selected{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+#diff-medium.selected{border-color:rgba(212,160,23,0.85);background:rgba(212,160,23,0.15);}
+#diff-easy.selected{border-color:rgba(46,200,80,0.85);background:rgba(26,90,42,0.3);}
+#diff-hard.selected{border-color:rgba(220,60,60,0.85);background:rgba(180,30,30,0.25);}
+/* 3D floating score text */
+#floatScore{position:fixed;pointer-events:none;z-index:60;font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;text-shadow:0 2px 12px rgba(0,0,0,0.9);white-space:nowrap;opacity:0;}
+#floatScore.pop{animation:floatScorePop 1.6s ease-out forwards;}
+@keyframes floatScorePop{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4);}30%{opacity:1;transform:translate(-50%,-80%) scale(1.1);}100%{opacity:0;transform:translate(-50%,-140%) scale(0.85);}}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="vignette"></div>
+<canvas id="pfx"></canvas>
+
+<!-- START -->
+<div id="start-screen" class="modal active">
+  <h2>פריזבי כלבני</h2>
+  <div class="subtitle">USDDN CHAMPIONSHIP SERIES</div>
+  <div class="gold-line"></div>
+  <div class="business-badge">
+    <div class="business-name">CoolDog</div>
+    <div class="owner-info">ניב פינטו אילוף כלבים &nbsp;|&nbsp; 052-3060902</div>
+  </div>
+  <p style="font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:18px;letter-spacing:1px;">בחר מתחרה</p>
+  <div class="char-grid">
+    <div class="char-card" id="card-colin" onclick="selectDog('colin')">
+      <div class="char-icon">🐶</div><div class="char-name">קולין</div>
+      <div class="char-desc">Border Collie<br>שחור-לבן</div>
+    </div>
+    <div class="char-card selected" id="card-zippo" onclick="selectDog('zippo')">
+      <div class="char-icon">🐕</div><div class="char-name">זיפו</div>
+      <div class="char-desc" style="color:#d4a017">Border Collie<br>Tricolor</div>
+    </div>
+    <div class="char-card" id="card-momo" onclick="selectDog('momo')">
+      <div class="char-icon">🐩</div><div class="char-name">מומו</div>
+      <div class="char-desc">Chihuahua<br>שובבה</div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:10px;letter-spacing:1px;">רמת קושי</p>
+  <div id="difficulty-grid" style="display:flex;gap:10px;margin-bottom:22px;justify-content:center;">
+    <div class="diff-card" id="diff-easy" onclick="selectDifficulty('easy')" style="background:rgba(26,90,42,0.18);border:1px solid rgba(46,200,80,0.35);border-radius:4px;padding:12px 18px;text-align:center;cursor:pointer;transition:all 0.22s;min-width:88px;position:relative;overflow:hidden;">
+      <div style="font-size:22px;margin-bottom:4px;">🐾</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;color:#4ec96e;">קל</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.38);margin-top:3px;line-height:1.3;">רוח חלשה<br>דיסק יציב</div>
+    </div>
+    <div class="diff-card selected" id="diff-medium" onclick="selectDifficulty('medium')" style="background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.55);border-radius:4px;padding:12px 18px;text-align:center;cursor:pointer;transition:all 0.22s;min-width:88px;position:relative;overflow:hidden;">
+      <div style="font-size:22px;margin-bottom:4px;">🥏</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;color:#d4a017;">בינוני</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.38);margin-top:3px;line-height:1.3;">רוח רגילה<br>דיסק רגיל</div>
+    </div>
+    <div class="diff-card" id="diff-hard" onclick="selectDifficulty('hard')" style="background:rgba(180,30,30,0.12);border:1px solid rgba(220,60,60,0.35);border-radius:4px;padding:12px 18px;text-align:center;cursor:pointer;transition:all 0.22s;min-width:88px;position:relative;overflow:hidden;">
+      <div style="font-size:22px;margin-bottom:4px;">🌪️</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;color:#e04444;">קשה</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.38);margin-top:3px;line-height:1.3;">רוח חזקה<br>דיסק סוטה</div>
+    </div>
+  </div>
+  <button class="btn" onclick="startGame()">התחל</button>
+  <div class="desktop-hint">WASD / חצים · SPACE לזריקה</div>
+</div>
+
+<!-- SOUND CONTROLS — fixed top-left, visible on start screen only -->
+<div id="sound-controls" style="position:fixed;top:16px;left:16px;display:flex;gap:8px;z-index:300;pointer-events:auto;">
+  <div id="music-btn" onclick="toggleMusic()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
+    <span>🎵</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">מוזיקה</span>
+  </div>
+  <div id="sfx-btn" onclick="toggleSFX()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
+    <span>🔊</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">צלילים</span>
+  </div>
+</div>
+
+<!-- GAME UI -->
+<div id="top-bar">
+  <div style="display:flex;gap:6px;pointer-events:auto;">
+    <div id="pause-btn" onclick="togglePause()">⏸</div>
+  </div>
+  <div class="hud-panel"><div class="hud-label">ניקוד</div><div class="hud-value" id="score-val">0</div></div>
+  <div class="hud-panel"><div class="hud-label">זמן</div><div class="hud-value" id="timer-val">90</div></div>
+  <div class="hud-panel" style="padding:6px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;">
+    <div class="hud-label">רוח</div>
+    <canvas id="wind-canvas" width="72" height="72" style="display:block;"></canvas>
+    <div style="font-size:8px;color:rgba(255,80,80,0.7);letter-spacing:1px;font-family:'Oswald',sans-serif;">N = כיוון זריקה</div>
+  </div>
+</div>
+<div id="zone-bar">
+  <span id="zone-label">ZONE</span>
+  <div class="zone-pip" id="zp1"></div><div class="zone-pip" id="zp2"></div>
+  <div class="zone-pip" id="zp3"></div><div class="zone-pip" id="zp4"></div>
+</div>
+<div id="status-msg"></div>
+<div id="announcer"></div>
+<div id="score-flash"></div>
+<div id="floatScore"></div>
+<div id="controls-layer">
+  <div id="joystick-container"><div id="joystick-knob"></div></div>
+  <div id="btn-throw" onclick="throwFrisbee()" ontouchstart="throwFrisbee();event.stopPropagation();" ontouchend="event.stopPropagation();">💿</div>
+</div>
+
+<!-- PAUSE -->
+<div id="pause-menu" class="modal">
+  <h2>מושהה</h2><div class="gold-line"></div>
+  <button class="btn" onclick="resumeGame()">המשך</button>
+  <div style="display:flex;gap:12px;margin:14px 0;pointer-events:auto;">
+    <div id="music-btn-pause" onclick="toggleMusic()" style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,160,23,0.35);color:white;font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;">
+      <span>🎵</span><span style="font-size:9px;letter-spacing:1px;color:rgba(255,255,255,0.5);">מוזיקה</span>
+    </div>
+    <div id="sfx-btn-pause" onclick="toggleSFX()" style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,160,23,0.35);color:white;font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;">
+      <span>🔊</span><span style="font-size:9px;letter-spacing:1px;color:rgba(255,255,255,0.5);">צלילים</span>
+    </div>
+  </div>
+  <button class="btn btn-ghost" onclick="resetToMenu()">תפריט</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="game-over-screen" class="modal">
+  <h2>תוצאה סופית</h2><div class="subtitle">END OF ROUND</div><div class="gold-line"></div>
+  <p style="font-size:16px;color:rgba(255,255,255,0.6);margin-bottom:4px;">
+    <span id="final-dog-name" style="color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px;"></span>
+    &nbsp;|&nbsp; ניקוד: <span id="final-score" style="color:#fff;font-size:1.35em;font-weight:700;"></span>
+  </p>
+  <p id="best-score-line" style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:12px;min-height:20px;"></p>
+  <input type="text" id="player-name" placeholder="שם לטבלת שיאים" maxlength="12">
+  <button class="btn" id="save-btn" onclick="saveAndRestart()">שמור ושחק שוב</button>
+  <div class="business-badge" style="margin-top:14px;">
+    <div class="business-name">CoolDog</div>
+    <div class="owner-info">ניב פינטו &nbsp;|&nbsp; 052-3060902</div>
+  </div>
+  <div id="leaderboard"><div style="text-align:center;color:rgba(255,255,255,0.3);font-size:13px;">טוען...</div></div>
+</div>
+
+<!-- ═══ ALL GAME LOGIC — plain JS, NO module, all functions global ═══ -->
+<script>
+// ─── FIREBASE (lazy, non-blocking) ────────────────────────────────────────
+var _fbUser = null, _fbDb = null, _fbAppId = 'usddn-frisbee';
+function _initFirebase() {
+  try {
+    var cfg = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    if (!cfg) return;
+    var id = typeof __app_id !== 'undefined' ? __app_id : 'usddn-frisbee';
+    _fbAppId = id;
+  } catch(e) {}
+}
+_initFirebase();
+
+// Firebase loaded separately via module script below — exposes _fbSave/_fbLoad
+</script>
+
+<script type="module">
+// Only Firebase lives in the module — saves scores
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+(async () => {
+  try {
+    var cfg = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    if (!cfg) return;
+    var fbApp = initializeApp(cfg);
+    var auth = getAuth(fbApp);
+    var db = getFirestore(fbApp);
+    var appId = typeof __app_id !== 'undefined' ? __app_id : 'usddn-frisbee';
+    try {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token)
+        await signInWithCustomToken(auth, __initial_auth_token);
+      else await signInAnonymously(auth);
+    } catch(e) {}
+    onAuthStateChanged(auth, u => { _fbUser = u; });
+
+    window._fbSave = async (name, score, dog) => {
+      if (!_fbUser) return;
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'),
+        { name, score, dog, timestamp: Date.now() });
+    };
+    window._fbLoad = async () => {
+      if (!_fbUser) return [];
+      var q = query(collection(db,'artifacts',appId,'public','data','scores'), orderBy('score','desc'), limit(5));
+      var snap = await getDocs(q);
+      var rows = [];
+      snap.forEach(d => rows.push(d.data()));
+      return rows;
+    };
+  } catch(e) { console.warn('Firebase:', e); }
+})();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  GAME — plain script, all functions on window automatically
+// ════════════════════════════════════════════════════════════════════
+
+// ─── DIFFICULTY PRESETS ───────────────────────────────────────────
+var DIFFICULTY_PRESETS = {
+  easy:   { totalTime:90, windMult:0.35, windChangeRate:0.5, driftMult:0.03, label:'קל',   color:'#4ec96e' },
+  medium: { totalTime:90, windMult:1.0,  windChangeRate:1.0, driftMult:0.06, label:'בינוני',color:'#d4a017' },
+  hard:   { totalTime:90, windMult:1.8,  windChangeRate:1.6, driftMult:0.12, label:'קשה',  color:'#e04444' }
+};
+var G_DIFFICULTY = 'medium';
+
+// ─── CONFIG ───────────────────────────────────────────────────────
+var ZONES = [{z:0,pts:0},{z:10,pts:1},{z:20,pts:2},{z:30,pts:3},{z:40,pts:5}];
+var PHYS = { maxSpeed:.36, accel:.05, friction:.915, rotSpeed:.048,
+             catchR:4.8, pickR:3.8, returnR:4.5, minDist:6, totalTime:90, boundX:14, boundZMin:-6, boundZMax:53 };
+
+// ─── STATE ────────────────────────────────────────────────────────
+var G = {
+  score:0, timeLeft:PHYS.totalTime, paused:false, over:false, started:false,
+  hasDisk:false, flying:false, jumping:false, onGround:false, canThrow:false,
+  dogType:'zippo', velZ:0, vVel:0, dogRot:0, fVel:new THREE.Vector3(),
+  fDrift:{x:0,z:0}, _crowdCheering:false, _ownerCelebrating:false,
+  input:{x:0,y:0,joyActive:false}, keys:{},
+  airCatchAnim:0,
+  airCatchScale:1,
+};
+
+// ─── SOUND ────────────────────────────────────────────────────────
+var _ac = null;
+var _masterSFX = null;   // gain node for all sound effects
+var _masterMusic = null; // gain node for music
+var _sfxEnabled = true;
+var _musicEnabled = true;
+
+function setSFXEnabled(on) {
+  _sfxEnabled = on;
+  if (_masterSFX) _masterSFX.gain.value = on ? 1.0 : 0;
+}
+function setMusicEnabled(on) {
+  _musicEnabled = on;
+  if (_masterMusic) _masterMusic.gain.value = on ? 1.0 : 0;
+}
+
+function getAC() {
+  if (!_ac) {
+    _ac = new (window.AudioContext || window.webkitAudioContext)();
+    _masterSFX   = _ac.createGain(); _masterSFX.gain.value   = _sfxEnabled   ? 1.0 : 0; _masterSFX.connect(_ac.destination);
+    _masterMusic = _ac.createGain(); _masterMusic.gain.value = _musicEnabled  ? 1.0 : 0; _masterMusic.connect(_ac.destination);
+  }
+  return _ac;
+}
+function sfxDest()   { getAC(); return _masterSFX;   }
+function musicDest() { getAC(); return _masterMusic;  }
+function playSwoosh() {
+  try {
+    var ac = getAC();
+    var buf = ac.createBuffer(1, ac.sampleRate * 0.35, ac.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) {
+      var t = i / ac.sampleRate;
+      var env = Math.pow(1 - t/0.35, 2.5);
+      d[i] = (Math.random()*2-1) * env * 0.35;
+    }
+    var src = ac.createBufferSource();
+    var filter = ac.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1800, ac.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(400, ac.currentTime+0.3);
+    filter.Q.value = 0.8;
+    src.buffer = buf; src.connect(filter); filter.connect(sfxDest());
+    src.start();
+  } catch(e) {}
+}
+function playPop() {
+  try {
+    var ac = getAC();
+    var buf = ac.createBuffer(1, ac.sampleRate * 0.18, ac.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) {
+      var t = i / ac.sampleRate;
+      var env = Math.exp(-t * 28);
+      d[i] = (Math.random()*2-1) * env * 0.9;
+    }
+    var src = ac.createBufferSource();
+    var gain = ac.createGain();
+    gain.gain.setValueAtTime(0.1, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ac.currentTime+0.18);
+    src.buffer = buf; src.connect(gain); gain.connect(sfxDest());
+    src.start();
+    // High pitched ping on top
+    var osc = ac.createOscillator();
+    var g2 = ac.createGain();
+    osc.frequency.setValueAtTime(900, ac.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, ac.currentTime+0.12);
+    g2.gain.setValueAtTime(0.04, ac.currentTime);
+    g2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.12);
+    osc.connect(g2); g2.connect(sfxDest());
+    osc.start(); osc.stop(ac.currentTime+0.12);
+  } catch(e) {}
+}
+function playReturn() {
+  try {
+    var ac = getAC();
+    [[520, 780, 0.0], [650, 1050, 0.12]].forEach(function(p) {
+      var osc = ac.createOscillator();
+      var g = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(p[0], ac.currentTime+p[2]);
+      osc.frequency.exponentialRampToValueAtTime(p[1], ac.currentTime+p[2]+0.09);
+      g.gain.setValueAtTime(0.22, ac.currentTime+p[2]);
+      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+p[2]+0.11);
+      osc.connect(g); g.connect(sfxDest());
+      osc.start(ac.currentTime+p[2]); osc.stop(ac.currentTime+p[2]+0.12);
+    });
+  } catch(e) {}
+}
+
+function startMusic() {
+  if (musicStarted) return;
+  musicStarted = true;
+  try {
+    var ac = getAC();
+    var master = ac.createGain();
+    master.gain.value = 0.0;
+    master.connect(musicDest());
+    master.gain.linearRampToValueAtTime(0.32, ac.currentTime + 0.5);
+
+    var bpm = 128, beat = 60/bpm;
+
+    // ── Kick — deep punchy ─────────────────────────────────────────
+    function kick(t, vol) {
+      var buf = ac.createBuffer(1, ac.sampleRate*0.35, ac.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i=0; i<d.length; i++) {
+        var tv = i/ac.sampleRate;
+        // pitch sweep + body
+        d[i] = Math.sin(2*Math.PI*(120*Math.exp(-tv*40)+40)*tv) * Math.exp(-tv*10);
+      }
+      var src=ac.createBufferSource(); var g=ac.createGain(); g.gain.value=vol||0.85;
+      src.buffer=buf; src.connect(g); g.connect(master); src.start(t);
+    }
+
+    // ── Snare — tight crack ────────────────────────────────────────
+    function snare(t, vol) {
+      // Noise body
+      var buf=ac.createBuffer(1, ac.sampleRate*0.18, ac.sampleRate);
+      var d=buf.getChannelData(0);
+      for (var i=0; i<d.length; i++)
+        d[i] = (Math.random()*2-1) * Math.exp(-i/ac.sampleRate*38);
+      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2200; bp.Q.value=0.6;
+      var g=ac.createGain(); g.gain.value=vol||0.55;
+      var src=ac.createBufferSource(); src.buffer=buf;
+      src.connect(bp); bp.connect(g); g.connect(master); src.start(t);
+      // Tone snap
+      var osc=ac.createOscillator(); var og=ac.createGain();
+      osc.frequency.value=180; og.gain.setValueAtTime(0.2,t); og.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+      osc.connect(og); og.connect(master); osc.start(t); osc.stop(t+0.07);
+    }
+
+    // ── Open hi-hat ────────────────────────────────────────────────
+    function hat(t, vol, open) {
+      var dur = open ? 0.18 : 0.028;
+      var buf=ac.createBuffer(1, ac.sampleRate*dur, ac.sampleRate);
+      var d=buf.getChannelData(0);
+      for (var i=0; i<d.length; i++)
+        d[i] = (Math.random()*2-1) * Math.exp(-i/ac.sampleRate*(open?18:180));
+      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
+      var g=ac.createGain(); g.gain.value=vol||0.28;
+      var src=ac.createBufferSource(); src.buffer=buf;
+      src.connect(hp); hp.connect(g); g.connect(master); src.start(t);
+    }
+
+    // ── Sub bass pulse — low sine on kick hits ─────────────────────
+    function sub(t) {
+      var osc=ac.createOscillator(); var g=ac.createGain();
+      osc.type='sine'; osc.frequency.setValueAtTime(60,t); osc.frequency.exponentialRampToValueAtTime(35,t+0.25);
+      g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
+      osc.connect(g); g.connect(master); osc.start(t); osc.stop(t+0.3);
+    }
+
+    // ── Clap layer on snare ────────────────────────────────────────
+    function clap(t) {
+      for (var c=0; c<3; c++) {
+        var delay = c*0.012;
+        var buf=ac.createBuffer(1, ac.sampleRate*0.08, ac.sampleRate);
+        var d=buf.getChannelData(0);
+        for (var i=0; i<d.length; i++) d[i]=(Math.random()*2-1)*Math.exp(-i/ac.sampleRate*55);
+        var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1100; bp.Q.value=1.2;
+        var g=ac.createGain(); g.gain.value=0.3;
+        var src=ac.createBufferSource(); src.buffer=buf;
+        src.connect(bp); bp.connect(g); g.connect(master); src.start(t+delay);
+      }
+    }
+
+    // ── Pattern: 16-step at 32nd-note resolution ───────────────────
+    // K = kick, S = snare, H = hat, O = open hat
+    // Bar pattern (16 steps = 1 bar of 16th notes at 128bpm)
+    //   1  e  +  a  2  e  +  a  3  e  +  a  4  e  +  a
+    var K = [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0];  // kick 1 & 3
+    var S = [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];  // snare 2 & 4
+    var H = [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0];  // 8th hats
+    var O = [0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,1,0];  // open hat before snare
+
+    // Extra kick on 'a' of beat 3 for push
+    K[10] = 1;
+
+    var _tick=0, startT=ac.currentTime+0.05;
+    var stepDur = beat * 0.25; // 16th note
+
+    (function scheduleLoop() {
+      if (!G.started || G.over) return;
+      var now = ac.currentTime;
+      while (startT + _tick*stepDur < now + 0.5) {
+        var t = startT + _tick*stepDur;
+        var i = _tick % 16;
+        if (K[i]) { kick(t); sub(t); }
+        if (S[i]) { snare(t); clap(t); }
+        if (H[i]) hat(t, 0.22);
+        if (O[i]) hat(t, 0.18, true);
+        _tick++;
+      }
+      setTimeout(scheduleLoop, 50);
+    })();
+
+  } catch(e) {}
+}
+
+function playCrowdCheer(big) {
+  try {
+    var ac = getAC();
+    var dur = big ? 1.8 : 0.9;
+    var buf = ac.createBuffer(2, ac.sampleRate*dur, ac.sampleRate);
+    for (var ch=0;ch<2;ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i=0;i<d.length;i++) {
+        var t=i/ac.sampleRate;
+        var env = t<0.15 ? t/0.15 : Math.exp(-(t-0.15)*1.8);
+        d[i]=(Math.random()*2-1)*env*(big?0.7:0.4);
+      }
+    }
+    var filt = ac.createBiquadFilter(); filt.type='bandpass';
+    filt.frequency.value=1200; filt.Q.value=0.4;
+    var g=ac.createGain(); g.gain.value=0.18;
+    var src=ac.createBufferSource();
+    src.buffer=buf; src.connect(filt); filt.connect(g); g.connect(sfxDest());
+    src.start();
+  } catch(e) {}
+}
+var renderer, scene, camera;
+var dogRoot, dogModel, dogTail, dogLegs = [];
+var ownerMesh, frisbeeGroup;
+var ownerHeadG, ownerThrowArmG, ownerRestArmG, ownerShadow;
+var fans = [], clouds = [];
+var animT = 0, timerID;
+var pawPrints = [];      // { mesh, life, maxLife }
+var discShadow = null;
+var dogShadow = null;
+var crowdCheerTimeout = null;
+var musicStarted = false;
+var landMarks = [];      // disc landing scrape marks
+var wind = { angle: Math.random()*Math.PI*2, speed: 0.3+Math.random()*0.5, changeTimer: 0 };
+var dogSpinTimer = 0;    // seconds remaining in air-catch spin
+var dirArrow = null;     // 3D arrow group pointing toward disc
+
+// ─── 2D PARTICLE OVERLAY ──────────────────────────────────────────
+var pfxCanvas = document.getElementById('pfx');
+var pfxCtx = pfxCanvas.getContext('2d');
+pfxCanvas.width = window.innerWidth;
+pfxCanvas.height = window.innerHeight;
+var particles = [];
+
+function spawnParticles(x, y, col, n) {
+  col = col || '#d4a017'; n = n || 22;
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 6;
+    particles.push({ x:x, y:y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-3.5,
+      life:1, decay:.02+Math.random()*.03, sz:3+Math.random()*9, col:col, star:Math.random()>.5 });
+  }
+}
+function tickParticles() {
+  pfxCtx.clearRect(0, 0, pfxCanvas.width, pfxCanvas.height);
+  // Draw direction arrow every frame (before particles so particles appear on top)
+  if (G.started && !G.over) drawDirectionArrow();
+  particles = particles.filter(function(p){ return p.life > 0; });
+  particles.forEach(function(p) {
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.17; p.vx*=.97; p.life-=p.decay;
+    pfxCtx.save(); pfxCtx.globalAlpha=Math.max(0,p.life); pfxCtx.fillStyle=p.col;
+    pfxCtx.translate(p.x, p.y);
+    if (p.star) { drawStar(pfxCtx, p.sz); }
+    else { pfxCtx.beginPath(); pfxCtx.arc(0,0,p.sz/2,0,Math.PI*2); pfxCtx.fill(); }
+    pfxCtx.restore();
+  });
+}
+function drawStar(ctx, r) {
+  ctx.beginPath();
+  for (var i=0; i<5; i++) {
+    var a=i*Math.PI*2/5-Math.PI/2, ia=a+Math.PI/5;
+    if(i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+    else ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+    ctx.lineTo(Math.cos(ia)*r*.4, Math.sin(ia)*r*.4);
+  }
+  ctx.closePath(); ctx.fill();
+}
+function worldToScreen(v3) {
+  var w = v3.clone().project(camera);
+  return { x:(w.x*.5+.5)*window.innerWidth, y:(-.5*w.y+.5)*window.innerHeight };
+}
+
+// ─── UI ───────────────────────────────────────────────────────────
+function selectDifficulty(d) {
+  G_DIFFICULTY = d;
+  document.querySelectorAll('.diff-card').forEach(function(c){ c.classList.remove('selected'); });
+  var el = document.getElementById('diff-'+d);
+  if(el) el.classList.add('selected');
+}
+
+function selectDog(t) {
+  G.dogType = t;
+  document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('selected'); });
+  var el = document.getElementById('card-'+t);
+  if(el) el.classList.add('selected');
+}
+
+function startGame() {
+  var diff = DIFFICULTY_PRESETS[G_DIFFICULTY] || DIFFICULTY_PRESETS.medium;
+  PHYS.totalTime = diff.totalTime;
+
+  document.getElementById('start-screen').classList.remove('active');
+  document.getElementById('top-bar').style.display = 'flex';
+  document.getElementById('zone-bar').style.display = 'flex';
+  document.getElementById('controls-layer').style.display = 'flex';
+  document.getElementById('sound-controls').style.display = 'none'; // hide during game
+
+  if (!renderer) { initThree(); }
+  else { resetWorld(); }
+
+  G.score=0; G.timeLeft=PHYS.totalTime; G.paused=false; G.over=false; G.started=true;
+  G.velZ=0; G.vVel=0; G.dogRot=0; G.hasDisk=false; G.flying=false; G.jumping=false; G.onGround=false;
+  G.airCatchAnim=0; G.airCatchScale=1;
+  dogSpinTimer=0;
+  musicStarted = false;
+  updateScoreboardTexture(0, PHYS.totalTime);
+  wind.angle = Math.random()*Math.PI*2;
+  wind.speed = (0.3+Math.random()*0.5) * diff.windMult;
+  wind.changeTimer = (5+Math.random()*8) / diff.windChangeRate;
+  wind._diffMult = diff.windMult;
+  wind._changeRate = diff.windChangeRate;
+  wind._driftMult = diff.driftMult;
+  setTimeout(drawWindIndicator, 100);
+  document.getElementById('score-val').textContent='0';
+  document.getElementById('timer-val').textContent=PHYS.totalTime;
+  document.getElementById('timer-val').classList.remove('danger');
+
+  // Show difficulty badge in HUD
+  var diffLabel = document.getElementById('diff-hud-label');
+  if (!diffLabel) {
+    diffLabel = document.createElement('div');
+    diffLabel.id = 'diff-hud-label';
+    diffLabel.style.cssText='position:fixed;top:0;left:50%;transform:translateX(-50%);font-family:Oswald,sans-serif;font-size:11px;letter-spacing:3px;padding:4px 18px;z-index:51;border-radius:0 0 6px 6px;';
+    document.body.appendChild(diffLabel);
+  }
+  diffLabel.textContent = diff.label.toUpperCase();
+  diffLabel.style.background = diff.color + '33';
+  diffLabel.style.color = diff.color;
+  diffLabel.style.border = '1px solid ' + diff.color + '66';
+  diffLabel.style.borderTop = 'none';
+  diffLabel.style.display = 'block';
+
+  if (timerID) clearInterval(timerID);
+  timerID = setInterval(timerTick, 1000);
+  startMusic();
+}
+
+function toggleMusic() {
+  _musicEnabled = !_musicEnabled;
+  setMusicEnabled(_musicEnabled);
+  var icon = _musicEnabled ? '🎵' : '🔇';
+  var op   = _musicEnabled ? '1' : '0.4';
+  ['music-btn','music-btn-pause'].forEach(function(id) {
+    var el = document.getElementById(id); if (!el) return;
+    el.style.opacity = op;
+    var spans = el.querySelectorAll('span');
+    if (spans[0]) spans[0].textContent = icon;
+  });
+}
+
+function toggleSFX() {
+  _sfxEnabled = !_sfxEnabled;
+  setSFXEnabled(_sfxEnabled);
+  var icon = _sfxEnabled ? '🔊' : '🔈';
+  var op   = _sfxEnabled ? '1' : '0.4';
+  ['sfx-btn','sfx-btn-pause'].forEach(function(id) {
+    var el = document.getElementById(id); if (!el) return;
+    el.style.opacity = op;
+    var spans = el.querySelectorAll('span');
+    if (spans[0]) spans[0].textContent = icon;
+  });
+}
+
+function togglePause() {
+  G.paused = !G.paused;
+  document.getElementById('pause-menu').classList.toggle('active', G.paused);
+}
+function resumeGame() { togglePause(); }
+function resetToMenu() {
+  document.getElementById('sound-controls').style.display = 'flex';
+  location.reload();
+}
+
+function throwFrisbee() {
+  if (!G.canThrow || G.hasDisk || G.flying || G.onGround) return;
+  G.flying = true;
+  frisbeeGroup.position.set(ownerMesh.position.x, 1.85, ownerMesh.position.z);
+  var dx = dogRoot.position.x - ownerMesh.position.x;
+  var dz = dogRoot.position.z - ownerMesh.position.z;
+  var len = Math.sqrt(dx*dx+dz*dz);
+  var spd = .37 + len*.002;
+  // Lateral drift: difficulty-dependent
+  var driftM = (wind._driftMult !== undefined ? wind._driftMult : 0.06);
+  var drift = (Math.random() - 0.5) * spd * driftM;
+  var perpX = -dz/len, perpZ = dx/len;
+  G.fVel.set(
+    dx/len*spd + perpX*drift,
+    .15 + Math.random()*.06,
+    dz/len*spd + perpZ*drift
+  );
+  G.fDrift = { x: perpX*drift*0.004, z: perpZ*drift*0.004 };
+  showAnnounce('זריקה! 💫', '#88ccff');
+  playSwoosh();
+  if (navigator.vibrate) navigator.vibrate(18);
+}
+
+function resetDiskToOwner() {
+  G.onGround=false; G.hasDisk=false; G.flying=false;
+  frisbeeGroup.position.set(ownerMesh.position.x, .1, ownerMesh.position.z+1.2);
+  showAnnounce('הדיסק חזר', '#88aaff');
+}
+
+function showAnnounce(text, col) {
+  col = col || '#ffffff';
+  var el = document.getElementById('announcer');
+  el.textContent = text; el.style.color = col;
+  el.style.textShadow = '0 0 38px '+col+'bb,0 4px 18px rgba(0,0,0,0.95)';
+  el.classList.add('pop');
+  setTimeout(function(){ el.classList.remove('pop'); }, 1500);
+}
+
+function timerTick() {
+  if (!G.started || G.paused || G.over) return;
+  G.timeLeft--;
+  // BUG FIX: danger threshold relative to total time (last ~11%)
+  var dangerThresh = Math.ceil(PHYS.totalTime * 0.11);
+  if (G.timeLeft <= dangerThresh) document.getElementById('timer-val').classList.add('danger');
+  updateScoreboardTexture(G.score, G.timeLeft);
+  if (G.timeLeft <= 0) endGame();
+}
+
+function updateSkyColor() {
+  // Sky is static — no color changes during gameplay
+}
+
+function endGame() {
+  G.over=true; G.started=false; clearInterval(timerID);
+  var diffLabel = document.getElementById('diff-hud-label');
+  if (diffLabel) diffLabel.style.display = 'none';
+  document.getElementById('final-score').textContent = G.score;
+  document.getElementById('final-dog-name').textContent = G.dogType.toUpperCase();
+
+  // Best score
+  var best = parseFloat(localStorage.getItem('usddn_best') || '0');
+  var bsLine = document.getElementById('best-score-line');
+  if (G.score > best) {
+    localStorage.setItem('usddn_best', G.score);
+    bsLine.innerHTML = '🏆 שיא חדש! (' + best + ' → <strong style="color:#ffd700">' + G.score + '</strong>)';
+  } else {
+    bsLine.textContent = 'שיא אישי: ' + best;
+  }
+  var names = {zippo:'זיפו', colin:'קולין', momo:'מומו'};
+  document.getElementById('final-dog-name').textContent = names[G.dogType] || G.dogType;
+  document.getElementById('game-over-screen').classList.add('active');
+  loadLeaderboard();
+}
+
+async function saveAndRestart() {
+  var name = document.getElementById('player-name').value || 'אלמוני';
+  var btn = document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='שומר...';
+  try {
+    if (window._fbSave) await window._fbSave(name, G.score, G.dogType);
+    location.reload();
+  } catch(e) { btn.disabled=false; btn.textContent='שגיאה - נסה שוב'; }
+}
+
+async function loadLeaderboard() {
+  var cont = document.getElementById('leaderboard');
+  if (!window._fbLoad) { cont.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;font-size:13px;">אין חיבור</div>'; return; }
+  try {
+    var rows = await window._fbLoad();
+    var dn = {zippo:'זיפו',colin:'קולין',momo:'מומו'};
+    var med = ['🥇','🥈','🥉','4.','5.'];
+    cont.innerHTML = '<h3>★ שיאי האליפות ★</h3>';
+    if (!rows.length) { cont.innerHTML += '<div style="color:rgba(255,255,255,.3);text-align:center;font-size:13px;">אין תוצאות עדיין</div>'; return; }
+    rows.forEach(function(d,i){
+      cont.innerHTML += '<div class="score-entry"><span>'+med[i]+' '+d.name+
+        ' <span style="color:rgba(255,255,255,.35);font-size:11px;">('+((dn[d.dog])||d.dog)+')</span></span>'+
+        '<span style="color:var(--gold)">'+d.score+'</span></div>';
+    });
+  } catch(e) { cont.innerHTML='<div style="color:#e74c3c;text-align:center;font-size:13px;">שגיאה</div>'; }
+}
+
+// ─── THREE.JS INIT ────────────────────────────────────────────────
+function initThree() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x3a6fba);
+  scene.fog = new THREE.FogExp2(0x6a9fd8, 0.005);
+
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 600);
+
+  setupLights();
+  buildWorld();
+  buildDog();
+  buildDogShadow();
+  buildDiscShadow();
+  buildOwner();
+  buildFrisbee();
+  buildDirectionArrow();
+  initControls();
+
+  window.addEventListener('resize', onResize);
+  requestAnimationFrame(loop);
+}
+
+function setupLights() {
+  var hemi = new THREE.HemisphereLight(0xddf0ff, 0x88dd44, 1.1);
+  scene.add(hemi);
+
+  var sun = new THREE.DirectionalLight(0xfff8e0, 2.2);
+  sun.position.set(50, 100, 30);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far = 250;
+  sun.shadow.camera.left = -65;
+  sun.shadow.camera.right = 65;
+  sun.shadow.camera.top = 80;
+  sun.shadow.camera.bottom = -80;
+  sun.shadow.bias = -0.001;
+  sun.shadow.normalBias = 0.05;
+  scene.add(sun);
+
+  var fill = new THREE.DirectionalLight(0x88aaff, 0.35);
+  fill.position.set(-40, 30, 40);
+  scene.add(fill);
+}
+
+// ─── WORLD ────────────────────────────────────────────────────────
+function buildWorld() {
+  buildOuterGround();
+  buildSky();
+  buildUSDDNField();   // authentic field with stripes, end zones, markings
+  buildGoalPosts();    // USDDN target poles at far end zone
+  buildBoundaryFlags();
+  buildStands();
+  buildScoreboard();
+  buildBanners();
+  buildRoughGrass();   // tall uncut grass outside field lines
+  buildClouds();
+  buildFans();
+  buildSunDisc();
+}
+
+// ── Outer ground (outside field) ──────────────────────────────────
+function buildOuterGround() {
+  var c = document.createElement('canvas'); c.width=128; c.height=128;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle='#52b83e'; ctx.fillRect(0,0,128,128);
+  var obColors=['#48aa34','#5ec448','#3a9c2c','#6ad454','#44a830'];
+  for(var i=0;i<1200;i++){
+    ctx.strokeStyle=obColors[i%5];
+    ctx.lineWidth=0.8+Math.random();
+    ctx.globalAlpha=0.55+Math.random()*0.4;
+    var ox=Math.random()*128, oy=Math.random()*128, oh=4+Math.random()*9;
+    ctx.beginPath(); ctx.moveTo(ox,oy+oh); ctx.quadraticCurveTo(ox+(Math.random()-.5)*4,oy+oh*.35,ox+(Math.random()-.5)*3,oy); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  var t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(20,30);
+  var m=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),new THREE.MeshLambertMaterial({map:t}));
+  m.rotation.x=-Math.PI/2; m.position.set(0,-.01,45); m.receiveShadow=true; scene.add(m);
+}
+
+// ── Authentic USDDN field ─────────────────────────────────────────
+function buildUSDDNField() {
+  // USDDN standard field: ~40m throw zone + end zones
+  // Playing field: width 24m, throw zones every 10m (0,10,20,30,40m), end zones at -7m and 47m
+  var FW = 30;   // field width metres (wider)
+  var FL = 60;   // total field length
+  var EZ = 7;    // end zone depth
+
+  // ── Grass texture — rich natural look ──
+  var grassCanvas = document.createElement('canvas');
+  grassCanvas.width = 256; grassCanvas.height = 512;
+  var gc = grassCanvas.getContext('2d');
+  var imgData = gc.createImageData(256, 512);
+  var px = imgData.data;
+
+  // Two alternating mowed stripe tones
+  var toneA = [72, 168, 45];   // fresh cut light
+  var toneB = [52, 138, 32];   // slightly darker stripe
+
+  for(var py2=0; py2<512; py2++){
+    var stripeIdx = Math.floor(py2 / (512/(FL/5))) % 2;
+    var base = stripeIdx===0 ? toneA : toneB;
+    for(var px2=0; px2<256; px2++){
+      var i4 = (py2*256+px2)*4;
+      var j = Math.round((Math.random()-.5)*18);
+      px[i4]   = Math.max(0,Math.min(255, base[0]+j));
+      px[i4+1] = Math.max(0,Math.min(255, base[1]+j));
+      px[i4+2] = Math.max(0,Math.min(255, base[2]+Math.round(j*.2)));
+      px[i4+3] = 255;
+    }
+  }
+  gc.putImageData(imgData, 0, 0);
+
+  // Grass blade strokes — thin, slightly curved upward, dense
+  var bPalette = ['#52cc3a','#3ab828','#68e050','#2ea020','#78ee60','#44b030'];
+  for(var bi=0; bi<5000; bi++){
+    var bx = Math.random()*256, by2 = Math.random()*512;
+    var bh = 6+Math.random()*12;
+    gc.strokeStyle = bPalette[Math.floor(Math.random()*bPalette.length)];
+    gc.lineWidth = 0.7+Math.random()*.9;
+    gc.globalAlpha = 0.55+Math.random()*0.45;
+    gc.beginPath();
+    gc.moveTo(bx, by2+bh);
+    gc.quadraticCurveTo(
+      bx+(Math.random()-.5)*6,
+      by2+bh*.3,
+      bx+(Math.random()-.5)*4,
+      by2
+    );
+    gc.stroke();
+  }
+  gc.globalAlpha=1;
+
+  var grassTex = new THREE.CanvasTexture(grassCanvas);
+  grassTex.wrapS=grassTex.wrapT=THREE.RepeatWrapping;
+  grassTex.repeat.set(3, 6);
+
+  var fieldMat = new THREE.MeshLambertMaterial({map:grassTex});
+  var field = new THREE.Mesh(new THREE.PlaneGeometry(FW, FL, 4, 20), fieldMat);
+  field.rotation.x=-Math.PI/2;
+  field.position.set(0,.005, FL/2 - EZ);   // centred so z=0 is throw start
+  field.receiveShadow=true;
+  scene.add(field);
+
+  // ── End zones (coloured) ──────────────────────────────────────
+  // Far end zone (catching end) — blue
+  var ezFarTex = makeEndZoneTexture('#0a2a6e','#1040a0','FAR END ZONE');
+  var ezFarMat = new THREE.MeshStandardMaterial({map:ezFarTex, roughness:.88});
+  var ezFar = new THREE.Mesh(new THREE.PlaneGeometry(FW, EZ), ezFarMat);
+  ezFar.rotation.x=-Math.PI/2; ezFar.position.set(0,.008, FL-EZ+EZ/2-EZ);
+  scene.add(ezFar);
+
+  // Near end zone (owner side) — red
+  var ezNearTex = makeEndZoneTexture('#6e0a0a','#a01010','OWNER ZONE');
+  var ezNearMat = new THREE.MeshStandardMaterial({map:ezNearTex, roughness:.88});
+  var ezNear = new THREE.Mesh(new THREE.PlaneGeometry(FW, EZ), ezNearMat);
+  ezNear.rotation.x=-Math.PI/2; ezNear.position.set(0,.008,-EZ+EZ/2);
+  scene.add(ezNear);
+
+  // ── White boundary lines ──────────────────────────────────────
+  var wMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.9});
+  var thickMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1});
+
+  // Sidelines
+  for(var sx of [-FW/2, FW/2]){
+    var sl=new THREE.Mesh(new THREE.PlaneGeometry(.22, FL+.5), thickMat.clone());
+    sl.rotation.x=-Math.PI/2; sl.position.set(sx,.015, FL/2-EZ); scene.add(sl);
+  }
+  // End lines (thick)
+  for(var ez of [-EZ, FL-EZ]){
+    var el=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.28), thickMat.clone());
+    el.rotation.x=-Math.PI/2; el.position.set(0,.015,ez); scene.add(el);
+  }
+  // End zone back lines
+  var ezl1=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.22),wMat.clone());
+  ezl1.rotation.x=-Math.PI/2; ezl1.position.set(0,.015,0); scene.add(ezl1);
+  var ezl2=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.22),wMat.clone());
+  ezl2.rotation.x=-Math.PI/2; ezl2.position.set(0,.015,FL-EZ*2); scene.add(ezl2);
+
+  // ── Distance lines with labels every 10m ─────────────────────
+  var zoneColors = [0xffd700, 0xffa500, 0xff4400, 0xcc0000];
+  var zoneLabels = ['10m','20m','30m','40m'];
+  for(var zi=0; zi<4; zi++){
+    var zz = (zi+1)*10;
+    // Coloured thick line
+    var zMat=new THREE.MeshBasicMaterial({color:zoneColors[zi], transparent:true, opacity:.85});
+    var zLine=new THREE.Mesh(new THREE.PlaneGeometry(FW,.32), zMat);
+    zLine.rotation.x=-Math.PI/2; zLine.position.set(0,.016,zz); scene.add(zLine);
+
+    // Distance marker signs on both sides
+    for(var side of[-1,1]){
+      var signTex = makeSignTexture(zoneLabels[zi], zoneColors[zi]);
+      var signMat = new THREE.MeshStandardMaterial({map:signTex, roughness:.7, metalness:.1});
+      var sign = new THREE.Mesh(new THREE.PlaneGeometry(2.5,1.2), signMat);
+      sign.position.set(side*(FW/2+2.2), 1.2, zz);
+      sign.rotation.y = side===1 ? -Math.PI/2 : Math.PI/2;
+      scene.add(sign);
+
+      // Sign post
+      var postM=new THREE.MeshStandardMaterial({color:0xaaaaaa,metalness:.5,roughness:.4});
+      var post=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.5,6),postM);
+      post.position.set(side*(FW/2+2.2),.75,zz); scene.add(post);
+    }
+  }
+
+  // ── Centre line (dashed appearance via repeated segments) ─────
+  for(var dz=2; dz<FL-EZ*2; dz+=3){
+    var dash=new THREE.Mesh(new THREE.PlaneGeometry(.12,1.5),
+      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.45}));
+    dash.rotation.x=-Math.PI/2; dash.position.set(0,.014,dz); scene.add(dash);
+  }
+}
+
+// ── Texture helpers ───────────────────────────────────────────────
+function makeEndZoneTexture(col1, col2, label) {
+  var c=document.createElement('canvas'); c.width=512; c.height=256;
+  var ctx=c.getContext('2d');
+  var g=ctx.createLinearGradient(0,0,512,256);
+  g.addColorStop(0,col1); g.addColorStop(1,col2);
+  ctx.fillStyle=g; ctx.fillRect(0,0,512,256);
+  // diagonal stripes
+  ctx.globalAlpha=.08;
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=12;
+  for(var i=-512;i<1024;i+=40){
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+256,256); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // noise
+  for(var n=0;n<8000;n++){
+    ctx.fillStyle='rgba(0,0,0,0.06)';
+    ctx.fillRect(Math.random()*512,Math.random()*256,1+Math.random()*2,1+Math.random()*2);
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function makeSignTexture(label, hexColor) {
+  var c=document.createElement('canvas'); c.width=256; c.height=128;
+  var ctx=c.getContext('2d');
+  var r=(hexColor>>16)&255, gg=(hexColor>>8)&255, b=hexColor&255;
+  ctx.fillStyle='rgb('+r+','+gg+','+b+')';
+  ctx.fillRect(0,0,256,128);
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=6; ctx.strokeRect(3,3,250,122);
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 72px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label, 128, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+// ── USDDN Goal structure at far end ──────────────────────────────
+function buildGoalPosts() {
+  var metalMat=new THREE.MeshStandardMaterial({color:0xcccccc,metalness:.7,roughness:.3});
+  var redMat=new THREE.MeshStandardMaterial({color:0xdd2222,roughness:.5});
+  var yellowMat=new THREE.MeshStandardMaterial({color:0xeecc00,roughness:.5});
+
+  // Two upright poles (like USDDN target)
+  var FW=24, targetZ=40;
+  for(var side of[-1,1]){
+    var pole=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,6,10),metalMat);
+    pole.position.set(side*4.5, 3, targetZ); pole.castShadow=true; scene.add(pole);
+    // Coloured top cap
+    var cap=new THREE.Mesh(new THREE.SphereGeometry(.22,8,8), side===1?redMat:yellowMat);
+    cap.position.set(side*4.5,6.1,targetZ); scene.add(cap);
+    // Flag on top
+    var flagTex=makeFlagTexture();
+    var flagMat=new THREE.MeshStandardMaterial({map:flagTex,roughness:.9,side:THREE.DoubleSide});
+    var flag=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.8),flagMat);
+    flag.position.set(side*4.5+.7,6.6,targetZ); scene.add(flag);
+  }
+  // Crossbar
+  var bar=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,9,8),metalMat);
+  bar.rotation.z=Math.PI/2; bar.position.set(0,5.8,targetZ); bar.castShadow=true; scene.add(bar);
+
+  // Ground mat / landing zone marker
+  var landMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.15});
+  var land=new THREE.Mesh(new THREE.PlaneGeometry(9,2),landMat);
+  land.rotation.x=-Math.PI/2; land.position.set(0,.02,targetZ); scene.add(land);
+}
+
+function makeFlagTexture() {
+  var c=document.createElement('canvas'); c.width=128; c.height=96;
+  var ctx=c.getContext('2d');
+  ctx.fillStyle='#1a4faa'; ctx.fillRect(0,0,128,96);
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 28px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('USDDN',64,48);
+  return new THREE.CanvasTexture(c);
+}
+
+// ── Corner & boundary flags ───────────────────────────────────────
+function buildBoundaryFlags() {
+  var FW=24;
+  var corners=[[-FW/2,-7],[FW/2,-7],[-FW/2,40],[FW/2,40]];
+  var flagCols=[0xff2222,0xffd700,0xff2222,0xffd700];
+  corners.forEach(function(c,i){
+    var postMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.6});
+    var post=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,2,6),postMat);
+    post.position.set(c[0],1,c[1]); post.castShadow=true; scene.add(post);
+    var fMat=new THREE.MeshStandardMaterial({color:flagCols[i],roughness:.8,side:THREE.DoubleSide});
+    var flag=new THREE.Mesh(new THREE.PlaneGeometry(.7,.5),fMat);
+    flag.position.set(c[0]+.4,2,c[1]); scene.add(flag);
+  });
+
+  // Mid-field boundary markers every 10m along sidelines
+  var FH=40;
+  for(var z=0; z<=FH; z+=10){
+    for(var sx of[-FW/2,FW/2]){
+      var pM=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.6});
+      var p=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1,6),pM);
+      p.position.set(sx,.5,z); scene.add(p);
+      var topMat=new THREE.MeshStandardMaterial({color:z<=20?0xff4400:0x4488ff});
+      var top=new THREE.Mesh(new THREE.SphereGeometry(.08,6,6),topMat);
+      top.position.set(sx,1,z); scene.add(top);
+    }
+  }
+}
+
+// ── Stands ────────────────────────────────────────────────────────
+function buildStands() {
+  var concMat = new THREE.MeshStandardMaterial({color:0x888c94, roughness:.9, metalness:.05});
+  var roofMat = new THREE.MeshStandardMaterial({color:0x333740, roughness:.7, metalness:.25});
+
+  var ROWS   = 6;
+  var RISE   = 1.1;
+  var TREAD  = 1.2;
+  var ZLEN   = 65;
+  var ZSTART = -10;
+
+  [-1, 1].forEach(function(side) {
+    var xBase = side * 26.5;
+
+    // Foundation slab
+    var slab = new THREE.Mesh(new THREE.BoxGeometry(ROWS*TREAD+2, 0.4, ZLEN), concMat);
+    slab.position.set(xBase + side*(ROWS*TREAD/2), -0.2, ZSTART+ZLEN/2);
+    slab.receiveShadow = true; scene.add(slab);
+
+    // Stepped tiers — just concrete, no seats
+    for (var row = 0; row < ROWS; row++) {
+      var stepH = (row+1) * RISE;
+      // Riser
+      var riser = new THREE.Mesh(new THREE.BoxGeometry(0.2, stepH, ZLEN), concMat);
+      riser.position.set(xBase + side*row*TREAD, stepH/2, ZSTART+ZLEN/2);
+      riser.receiveShadow = true; riser.castShadow = true; scene.add(riser);
+      // Tread
+      var tread = new THREE.Mesh(new THREE.BoxGeometry(TREAD, 0.18, ZLEN), concMat);
+      tread.position.set(xBase + side*(row*TREAD + TREAD*0.5), row*RISE+0.09, ZSTART+ZLEN/2);
+      tread.receiveShadow = true; scene.add(tread);
+    }
+
+    // Roof
+    var roofW = ROWS*TREAD + 2;
+    var roofH = ROWS*RISE + 3.2;
+    var roof = new THREE.Mesh(new THREE.BoxGeometry(roofW, 0.28, ZLEN), roofMat);
+    roof.position.set(xBase + side*(roofW/2 - 0.5), roofH, ZSTART+ZLEN/2);
+    roof.castShadow = true; scene.add(roof);
+
+    // Roof underside (slightly darker)
+    var roofUnder = new THREE.Mesh(new THREE.BoxGeometry(roofW, 0.1, ZLEN),
+      new THREE.MeshStandardMaterial({color:0x222428, roughness:.9}));
+    roofUnder.position.set(xBase + side*(roofW/2 - 0.5), roofH-0.19, ZSTART+ZLEN/2);
+    scene.add(roofUnder);
+
+    // Support columns
+    for (var cz = ZSTART+6; cz <= ZSTART+ZLEN-6; cz += 12) {
+      var col = new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,roofH,8), roofMat);
+      col.position.set(xBase + side*(ROWS*TREAD - 0.3), roofH/2, cz);
+      col.castShadow = true; scene.add(col);
+    }
+
+    // Front fascia wall
+    var fascia = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.3, ZLEN), concMat);
+    fascia.position.set(xBase, 0.65, ZSTART+ZLEN/2);
+    fascia.castShadow = true; scene.add(fascia);
+  });
+}
+
+// ── Banners / sponsor boards ──────────────────────────────────────
+function buildBanners() {
+  // Banners hung flat on the front face of each stand
+  // Stands are at x=±30, front face toward field = x=±27.5 (inner edge)
+  // Rows at y=0.5..4.5, we place banners at mid-stand height y≈2.5
+  // z positions spaced along the stand length (z=20 is stand centre, length=70 → z=-15 to z=55)
+  var bannerData = [
+    {text:'USDDN',     bg:'#1a3a8a', fg:'#ffffff'},
+    {text:'CoolDog',   bg:'#1a6a2a', fg:'#f0d020'},
+    {text:'DISC DOG',  bg:'#8a1a1a', fg:'#ffffff'},
+    {text:'USDDN',     bg:'#1a3a8a', fg:'#ffffff'},
+    {text:'CoolDog',   bg:'#1a6a2a', fg:'#f0d020'},
+    {text:'DISC DOG',  bg:'#8a1a1a', fg:'#ffffff'},
+  ];
+  var zPositions = [-10, 5, 20, 35];
+  var sides = [-1, 1];
+
+  var roofY  = 9.8;   // must match buildStands roofH
+  var roofW  = 9.2;   // must match buildStands roofW
+  sides.forEach(function(side) {
+    // Inner edge of roof (toward field)
+    var xInner = side * (26.5 - 0.5);   // inner face of stand + small offset
+    var bannerH = 2.0;
+    var bannerW = 5.5;
+    zPositions.forEach(function(bz, idx) {
+      var bd = bannerData[idx % bannerData.length];
+      var bTex = makeBannerTexture(bd.text, bd.bg, bd.fg);
+      var bMat = new THREE.MeshStandardMaterial({map:bTex, roughness:.7, metalness:.05, side:THREE.DoubleSide});
+      // Thin horizontal rod at roof level, running along Z
+      var beamMat = new THREE.MeshStandardMaterial({color:0x555555, roughness:.5, metalness:.5});
+      var beam = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,bannerW+0.3,6), beamMat);
+      beam.rotation.x = Math.PI/2;  // align along Z axis
+      beam.position.set(xInner, roofY - 0.12, bz);
+      scene.add(beam);
+      // Banner hangs vertically below beam
+      var banner = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, bannerH), bMat);
+      banner.position.set(xInner, roofY - 0.12 - bannerH/2 - 0.06, bz);
+      // Banner faces field (perpendicular to Z, i.e. faces along X)
+      banner.rotation.y = side === -1 ? Math.PI/2 : -Math.PI/2;
+      scene.add(banner);
+    });
+  });
+}
+
+function makeBannerTexture(text, bg, fg) {
+  var c=document.createElement('canvas'); c.width=512; c.height=160;
+  var ctx=c.getContext('2d');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,512,160);
+  // border
+  ctx.strokeStyle=fg; ctx.lineWidth=8; ctx.strokeRect(4,4,504,152);
+  ctx.fillStyle=fg;
+  var fs=text.length>12?38:52;
+  ctx.font='bold '+fs+'px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text,256,80);
+  return new THREE.CanvasTexture(c);
+}
+
+// ── Scoreboard ────────────────────────────────────────────────────
+var scoreboardCtx = null;
+var scoreboardTex = null;
+
+function buildScoreboard() {
+  var postMat=new THREE.MeshStandardMaterial({color:0x9a9ea5,roughness:.55,metalness:.5});
+  // Posts at far end zone, facing back toward player
+  for(var px of[-12,12]){
+    var p=new THREE.Mesh(new THREE.CylinderGeometry(.44,.44,18,10),postMat);
+    p.position.set(px,8,46); p.castShadow=true; scene.add(p);
+  }
+
+  // Create live canvas texture
+  var c=document.createElement('canvas'); c.width=1024; c.height=320;
+  scoreboardCtx = c.getContext('2d');
+  scoreboardTex = new THREE.CanvasTexture(c);
+  updateScoreboardTexture(0, 90);
+
+  var boardMat=new THREE.MeshStandardMaterial({map:scoreboardTex,roughness:.5,metalness:.1});
+  var board=new THREE.Mesh(new THREE.BoxGeometry(26,8,.8),boardMat);
+  board.position.set(0,14,46.5);
+  board.rotation.y = Math.PI;   // face toward player (z=0 direction)
+  board.castShadow=true; scene.add(board);
+
+  var rimMat=new THREE.MeshStandardMaterial({color:0xd9a31a,roughness:.38,metalness:.6});
+  var rim=new THREE.Mesh(new THREE.BoxGeometry(27.5,9.5,.5),rimMat);
+  rim.position.set(0,14,46.8);
+  rim.rotation.y = Math.PI;
+  scene.add(rim);
+
+  // Lights on top
+  var lightMat=new THREE.MeshStandardMaterial({color:0xffffaa,emissive:new THREE.Color(0xffff44),roughness:.3});
+  for(var lx=-10;lx<=10;lx+=5){
+    var light=new THREE.Mesh(new THREE.SphereGeometry(.3,8,8),lightMat);
+    light.position.set(lx,19.5,47); scene.add(light);
+  }
+}
+
+function updateScoreboardTexture(score, timeLeft) {
+  if (!scoreboardCtx) return;
+  var ctx = scoreboardCtx;
+  var c = ctx.canvas;
+
+  ctx.fillStyle='#050d1e'; ctx.fillRect(0,0,1024,320);
+  // LED grid dots
+  ctx.fillStyle='#0a1a2e';
+  for(var xi=0;xi<1024;xi+=16) for(var yi=0;yi<320;yi+=16)
+    ctx.fillRect(xi+1,yi+1,13,13);
+
+  // Title
+  ctx.fillStyle='#ffd700';
+  ctx.font='bold 52px Arial'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('USDDN DISC DOG',512,18);
+
+  // Dog name + breed line
+  var dogNames  = {zippo:'זיפו', colin:'קולין', momo:'מומו'};
+  var dogBreeds = {zippo:'Border Collie · Tricolor', colin:'Border Collie · B&W', momo:'Chihuahua'};
+  var dogName   = dogNames[G.dogType]  || G.dogType;
+  var dogBreed  = dogBreeds[G.dogType] || '';
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 30px Arial';
+  ctx.fillText('🐕 ' + dogName + '  ·  ' + dogBreed, 512, 82);
+
+  // Score panel
+  ctx.fillStyle='#111'; ctx.fillRect(80,138,360,155);
+  ctx.strokeStyle='#00ff88'; ctx.lineWidth=2; ctx.strokeRect(80,138,360,155);
+  ctx.fillStyle='#aaaaaa'; ctx.font='bold 26px Arial';
+  ctx.fillText('SCORE',260,150);
+  ctx.fillStyle='#00ff88'; ctx.font='bold 74px monospace';
+  var scoreStr = score.toFixed(1).padStart(5,' ');
+  ctx.fillText(scoreStr, 260, 192);
+
+  // Time panel
+  var mins = Math.floor(timeLeft/60);
+  var secs = (timeLeft%60).toString().padStart(2,'0');
+  var timeStr = mins+':'+secs;
+  var timeColor = timeLeft<=10 ? '#ff4444' : '#ffaa00';
+  ctx.fillStyle='#111'; ctx.fillRect(584,138,360,155);
+  ctx.strokeStyle=timeColor; ctx.lineWidth=2; ctx.strokeRect(584,138,360,155);
+  ctx.fillStyle='#aaaaaa'; ctx.font='bold 26px Arial';
+  ctx.fillText('TIME',764,150);
+  ctx.fillStyle=timeColor; ctx.font='bold 74px monospace';
+  ctx.fillText(timeStr,764,192);
+
+  if (scoreboardTex) scoreboardTex.needsUpdate = true;
+}
+
+// ── Rough / tall grass strips outside field sidelines ─────────────
+function buildRoughGrass() {
+  var FW = 30, FL = 60, EZ = 7;
+  var fieldEdgeZ = FL/2 - EZ;  // field centre z
+
+  // Build rough grass texture — tall blades, darker, less uniform
+  function makeRoughTex() {
+    var c = document.createElement('canvas'); c.width=128; c.height=256;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle='#2a6e1a'; ctx.fillRect(0,0,128,256);
+    var cols = ['#1e5c14','#286e1c','#347a24','#3a8a2a','#22621a','#408e30','#184e10','#4a9e38'];
+    for (var i=0; i<6000; i++) {
+      var bx=Math.random()*128, by=Math.random()*256;
+      var bh = 8+Math.random()*22;  // taller blades
+      var lean = (Math.random()-.5)*10;
+      ctx.strokeStyle = cols[Math.floor(Math.random()*cols.length)];
+      ctx.lineWidth = 0.8+Math.random()*1.4;
+      ctx.globalAlpha = 0.6+Math.random()*0.4;
+      ctx.beginPath();
+      ctx.moveTo(bx, by+bh);
+      ctx.quadraticCurveTo(bx+lean*.5, by+bh*.4, bx+lean, by);
+      ctx.stroke();
+    }
+    // Some darker clumps for depth
+    for (var j=0; j<300; j++) {
+      ctx.fillStyle='rgba(0,20,0,0.12)';
+      ctx.beginPath();
+      ctx.ellipse(Math.random()*128, Math.random()*256, 4+Math.random()*10, 2+Math.random()*4, Math.random()*Math.PI, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    var tex = new THREE.CanvasTexture(c);
+    tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+    tex.repeat.set(4,8);
+    return tex;
+  }
+
+  var roughMat = new THREE.MeshLambertMaterial({map: makeRoughTex()});
+
+  // Left and right strips alongside field (between sideline and stands)
+  var stripW = 8, stripL = FL + 16;
+  [-1,1].forEach(function(side) {
+    var strip = new THREE.Mesh(new THREE.PlaneGeometry(stripW, stripL), roughMat);
+    strip.rotation.x = -Math.PI/2;
+    strip.position.set(side * (FW/2 + stripW/2), 0.003, fieldEdgeZ);
+    strip.receiveShadow = true;
+    scene.add(strip);
+  });
+
+  // Behind owner (near end zone)
+  var nearStrip = new THREE.Mesh(new THREE.PlaneGeometry(FW+16, 12), roughMat);
+  nearStrip.rotation.x = -Math.PI/2;
+  nearStrip.position.set(0, 0.003, -EZ - 6);
+  nearStrip.receiveShadow = true;
+  scene.add(nearStrip);
+
+  // Behind far end zone
+  var farStrip = new THREE.Mesh(new THREE.PlaneGeometry(FW+16, 12), roughMat);
+  farStrip.rotation.x = -Math.PI/2;
+  farStrip.position.set(0, 0.003, FL - EZ + 6);
+  farStrip.receiveShadow = true;
+  scene.add(farStrip);
+}
+
+// ── Clouds ────────────────────────────────────────────────────────
+function buildClouds() {
+  for(var i=0;i<12;i++){
+    var cGroup=new THREE.Group();
+    var cMat=new THREE.MeshStandardMaterial({color:0xf8f9ff,transparent:true,opacity:.82,roughness:1});
+    var puffs=3+Math.floor(Math.random()*4);
+    for(var p=0;p<puffs;p++){
+      var r=2.8+Math.random()*5.5;
+      var puff=new THREE.Mesh(new THREE.SphereGeometry(r,8,7),cMat);
+      puff.position.set((Math.random()-.5)*14,(Math.random()-.4)*5,(Math.random()-.5)*7);
+      puff.scale.y=.52; cGroup.add(puff);
+    }
+    cGroup.position.set((Math.random()-.5)*260,32+Math.random()*40,Math.random()*250-30);
+    cGroup.scale.setScalar(.75+Math.random()*1.8);
+    scene.add(cGroup);
+    clouds.push({mesh:cGroup,speed:.004+Math.random()*.008});
+  }
+}
+
+// ── Sky ───────────────────────────────────────────────────────────
+function buildSky() {
+  var skyCanvas=document.createElement('canvas'); skyCanvas.width=4; skyCanvas.height=512;
+  var sc=skyCanvas.getContext('2d');
+  var sg=sc.createLinearGradient(0,0,0,512);
+  sg.addColorStop(0,'#0d2460'); sg.addColorStop(.35,'#1e5fbb');
+  sg.addColorStop(.65,'#4a8fd4'); sg.addColorStop(1,'#a8d0f0');
+  sc.fillStyle=sg; sc.fillRect(0,0,4,512);
+  var skyTex=new THREE.CanvasTexture(skyCanvas);
+  var skyMat=new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide});
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(500,24,16),skyMat));
+}
+
+function buildSunDisc() {
+  var sunMat=new THREE.MeshBasicMaterial({color:0xfffccc});
+  var sun=new THREE.Mesh(new THREE.SphereGeometry(10,12,12),sunMat);
+  sun.position.set(100,160,-180); scene.add(sun);
+  var haloMat=new THREE.MeshBasicMaterial({color:0xfff5aa,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false});
+  var halo=new THREE.Mesh(new THREE.PlaneGeometry(50,50),haloMat);
+  halo.position.copy(sun.position); halo.lookAt(0,0,0); scene.add(halo);
+}
+
+// ── Fans — seated on stands ──────────────────────────────────────
+function buildFans() {
+  // Share ALL materials and geometries — no per-fan cloning
+  var shirtMats = [
+    0xcc2222,0xdd8800,0x2266cc,0x8822cc,0x229944,0xddcc00,0xff6622,0x44aacc
+  ].map(function(c){ return new THREE.MeshLambertMaterial({color:c}); });
+
+  var skinMats = [0xffcba4,0xf0a875,0xd4845a].map(function(c){
+    return new THREE.MeshLambertMaterial({color:c});
+  });
+  var pantsMats = [0x223355,0x332211,0x111111].map(function(c){
+    return new THREE.MeshLambertMaterial({color:c});
+  });
+  var hairMats = [0x1a0a00,0x8b4513,0xf0d080,0xcc2200].map(function(c){
+    return new THREE.MeshLambertMaterial({color:c});
+  });
+  var eyeMat  = new THREE.MeshLambertMaterial({color:0x111111});
+  var shoeMat = new THREE.MeshLambertMaterial({color:0x222222});
+
+  // Shared geometries (created once)
+  var torsoGeo    = new THREE.BoxGeometry(.44, .60, .36);
+  var hipsGeo     = new THREE.BoxGeometry(.42, .32, .38);
+  var thighGeo    = new THREE.BoxGeometry(.17, .48, .17);
+  var shinGeo     = new THREE.BoxGeometry(.14, .44, .14);
+  var shoeGeo     = new THREE.BoxGeometry(.16, .10, .30);
+  var upperArmGeo = new THREE.BoxGeometry(.15, .40, .15);
+  var foreArmGeo  = new THREE.BoxGeometry(.12, .36, .12);
+  var headGeo     = new THREE.SphereGeometry(.20, 6, 5);
+  var hairGeo     = new THREE.SphereGeometry(.215, 6, 5);
+  var eyeGeo      = new THREE.SphereGeometry(.026, 5, 4);
+
+  fans = [];
+
+  var RISE   = 1.1;
+  var TREAD  = 1.2;
+  var ZSTART = -10;
+  var ZLEN   = 65;
+  var ROWS   = 6;
+  var SPACING = 4.5;   // wider spacing = fewer fans, less overlap
+  var count   = Math.floor(ZLEN / SPACING);  // ~14 per row
+
+  [-1, 1].forEach(function(side) {
+    var xBase = side * 26.5;
+
+    for (var row = 0; row < ROWS; row++) {
+      var stepTopY = row * RISE + 0.18;
+      var stepX    = xBase + side * (row * TREAD + TREAD * 0.5);
+
+      for (var fi = 0; fi < count; fi++) {
+        var fz = ZSTART + SPACING*0.5 + fi * SPACING;
+        var g  = new THREE.Group();
+
+        var skinMat  = skinMats [Math.floor(Math.random()*skinMats.length)];
+        var sMat     = shirtMats[Math.floor(Math.random()*shirtMats.length)];
+        var pantsMat = pantsMats[Math.floor(Math.random()*pantsMats.length)];
+        var hairMat  = hairMats [Math.floor(Math.random()*hairMats.length)];
+
+        // Legs
+        [-1,1].forEach(function(lsd) {
+          var thigh = new THREE.Mesh(thighGeo, pantsMat); thigh.position.set(lsd*.12, .24, 0); g.add(thigh);
+          var shin  = new THREE.Mesh(shinGeo,  pantsMat); shin.position.set(lsd*.12, -.26, 0); g.add(shin);
+          var shoe  = new THREE.Mesh(shoeGeo,  shoeMat);  shoe.position.set(lsd*.12, -.52, .04); g.add(shoe);
+        });
+
+        // Hips + torso
+        var hips  = new THREE.Mesh(hipsGeo,  pantsMat); hips.position.set(0, .56, 0); g.add(hips);
+        var torso = new THREE.Mesh(torsoGeo, sMat);     torso.position.set(0, 1.02, 0); g.add(torso);
+
+        // Arms
+        var waving = Math.random() > .45;
+        var aR_mesh, aL_mesh;
+        [-1,1].forEach(function(asd) {
+          var armG = new THREE.Group(); armG.position.set(asd*.28, 1.08, 0); g.add(armG);
+          var upper = new THREE.Mesh(upperArmGeo, sMat);    upper.position.y = -.20; armG.add(upper);
+          var fore  = new THREE.Mesh(foreArmGeo,  skinMat); fore.position.y  = -.52; armG.add(fore);
+          if (waving) { armG.rotation.z = asd*(-1.0-Math.random()*.4); armG.rotation.x = -0.4-Math.random()*.3; }
+          else        { armG.rotation.x = 0.15; armG.rotation.z = asd*0.12; }
+          if (asd===1) aR_mesh=armG; else aL_mesh=armG;
+        });
+
+        // Head + hair + eyes
+        var head = new THREE.Mesh(headGeo, skinMat); head.position.set(0,1.68,0); g.add(head);
+        var hair = new THREE.Mesh(hairGeo, hairMat); hair.position.set(0,1.76,-.03); hair.scale.set(1,.6,.95); g.add(hair);
+        [-1,1].forEach(function(esd){
+          var ey = new THREE.Mesh(eyeGeo, eyeMat);
+          ey.position.set(esd*.085, 1.70, .18); g.add(ey);
+        });
+
+        g.position.set(stepX, stepTopY, fz);
+        // Left side (side=-1, x negative): face +x = PI/2
+        // Right side (side=1, x positive): face -x = -PI/2
+        var baseRotY = side === -1 ? Math.PI/2 : -Math.PI/2;
+        g.rotation.y = baseRotY;
+        scene.add(g);
+        fans.push({mesh:g, aR:aR_mesh, aL:aL_mesh, phase:Math.random()*Math.PI*2, wave:waving, baseY: baseRotY});
+      }
+    }
+  });
+}
+
+// ── Paw prints ────────────────────────────────────────────────────
+var _pawTimer = 0;
+var _pawMat = null;
+var _pawMatSmall = null;
+function makePawMat(scale) {
+  var W=80, H=100;
+  var c = document.createElement('canvas'); c.width=W; c.height=H;
+  var ctx = c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  var s = scale || 1.0;
+  var col = 'rgba(18,38,10,0.90)';
+  ctx.fillStyle = col;
+
+  // ── Main central pad — wide heart-ish shape ───────────────────
+  var px = W*0.5, py = H*0.65;
+  ctx.beginPath();
+  ctx.ellipse(px, py, 16*s, 18*s, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ── 4 toe pads in realistic arc around top of main pad ────────
+  // Real dog: middle two toes slightly higher, outer two lower & wider apart
+  // Positions relative to main pad center, with gap
+  var toes = [
+    { dx: -14*s, dy: -22*s, rx: 7*s,  ry: 9*s,  rot:  0.25 },  // outer left
+    { dx:  -5*s, dy: -28*s, rx: 7.5*s,ry: 9.5*s, rot:  0.08 },  // inner left
+    { dx:   5*s, dy: -28*s, rx: 7.5*s,ry: 9.5*s, rot: -0.08 },  // inner right
+    { dx:  14*s, dy: -22*s, rx: 7*s,  ry: 9*s,  rot: -0.25 },  // outer right
+  ];
+  toes.forEach(function(t) {
+    ctx.beginPath();
+    ctx.ellipse(px + t.dx, py + t.dy, t.rx, t.ry, t.rot, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  var tex = new THREE.CanvasTexture(c);
+  return new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, opacity:0.55});
+}
+function getPawMat()      { if (!_pawMat)      _pawMat      = makePawMat(1.0);  return _pawMat; }
+function getPawMatSmall() { if (!_pawMatSmall) _pawMatSmall = makePawMat(0.55); return _pawMatSmall; }
+
+function spawnPawPrint(x, z, rot) {
+  var isMomo = G.dogType === 'momo';
+  var baseMat = isMomo ? getPawMatSmall() : getPawMat();
+  var mat = baseMat.clone();
+  mat.opacity = 0.55;
+  var sz = isMomo ? 0.32 : 0.55;
+  var szH = isMomo ? 0.48 : 0.82;
+  var mesh = new THREE.Mesh(new THREE.PlaneGeometry(sz, szH), mat);
+  mesh.rotation.order = 'YXZ';
+  mesh.rotation.y = rot + Math.PI;
+  mesh.rotation.x = -Math.PI/2;
+  mesh.position.set(x + (Math.random()-.5)*0.18, 0.012, z + (Math.random()-.5)*0.18);
+  scene.add(mesh);
+  pawPrints.push({ mesh:mesh, life:1.0 });
+}
+
+function updatePawPrints(dt) {
+  _pawTimer -= dt;
+  if (_pawTimer <= 0 && Math.abs(G.velZ) > 0.04) {
+    _pawTimer = 0.22;
+    spawnPawPrint(dogRoot.position.x, dogRoot.position.z, G.dogRot);
+  }
+  for (var i = pawPrints.length-1; i >= 0; i--) {
+    pawPrints[i].life -= dt * 0.28;  // ~3.5 seconds to fade
+    if (pawPrints[i].life <= 0) {
+      scene.remove(pawPrints[i].mesh);
+      pawPrints[i].mesh.material.dispose();
+      pawPrints.splice(i,1);
+    } else {
+      pawPrints[i].mesh.material.opacity = pawPrints[i].life * 0.55;
+    }
+  }
+}
+
+// ── Disc shadow ────────────────────────────────────────────────────
+function buildDiscShadow() {
+  if (discShadow) scene.remove(discShadow);
+  var c = document.createElement('canvas'); c.width=64; c.height=64;
+  var ctx = c.getContext('2d');
+  var g = ctx.createRadialGradient(32,32,2,32,32,30);
+  g.addColorStop(0,'rgba(0,0,0,0.6)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+  var mat = new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false, opacity:0});
+  discShadow = new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.4), mat);
+  discShadow.rotation.x = -Math.PI/2;
+  discShadow.position.y = 0.015;
+  scene.add(discShadow);
+}
+
+function updateDiscShadow() {
+  if (!discShadow) return;
+  var fy = frisbeeGroup.position.y;
+  if (G.flying && fy > 0.1) {
+    discShadow.position.x = frisbeeGroup.position.x;
+    discShadow.position.z = frisbeeGroup.position.z;
+    var heightFactor = Math.max(0, 1 - fy * 0.14);
+    discShadow.material.opacity = heightFactor * 0.6;
+    var sc = 0.5 + fy * 0.18;
+    discShadow.scale.setScalar(sc);
+  } else {
+    discShadow.material.opacity = 0;
+  }
+}
+
+// ── Direction arrow — 2D HUD overlay pointing toward disc ─────────
+function buildDirectionArrow() {
+  // 2D arrow drawn on pfxCanvas — no 3D mesh needed
+  if (dirArrow) { scene.remove(dirArrow); dirArrow = null; }
+}
+
+function updateDirectionArrow() {
+  // Drawn in tickParticles/draw loop — nothing to update here per-frame for 3D
+}
+
+function drawDirectionArrow() {
+  if (!dogRoot || !frisbeeGroup) return;
+  var isVisible = G.flying || G.onGround;
+  if (!isVisible) return;
+
+  var dx = frisbeeGroup.position.x - dogRoot.position.x;
+  var dz = frisbeeGroup.position.z - dogRoot.position.z;
+  var dist3D = Math.sqrt(dx*dx + dz*dz);
+  if (dist3D < 2.5) return; // too close, no arrow needed
+
+  // Project dog position to screen
+  var dogScreen = worldToScreen(dogRoot.position);
+  // Project disc position to screen
+  var discScreen = worldToScreen(frisbeeGroup.position);
+
+  var sdx = discScreen.x - dogScreen.x;
+  var sdz = discScreen.y - dogScreen.y;
+  var screenDist = Math.sqrt(sdx*sdx + sdz*sdz);
+  var ang2D = Math.atan2(sdz, sdx);
+
+  var ctx = pfxCtx;
+  ctx.save();
+
+  // Arrow starts at dog screen pos + offset, points toward disc
+  var offset = 52; // px from dog center
+  var ax = dogScreen.x + Math.cos(ang2D) * offset;
+  var ay = dogScreen.y + Math.sin(ang2D) * offset;
+
+  // Color by state
+  var col = G.onGround ? '#44ff88' : '#00e5ff';
+  var pulse = Math.abs(Math.sin(animT * 6)) * 0.35 + 0.65;
+
+  // Arrow length — shrinks as disc gets closer on screen
+  var arrowLen = Math.min(48, Math.max(24, screenDist * 0.35));
+
+  // Draw arrow shadow/glow
+  ctx.globalAlpha = 0.25 * pulse;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 14;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(ax + Math.cos(ang2D)*arrowLen, ay + Math.sin(ang2D)*arrowLen);
+  ctx.stroke();
+
+  // Main arrow shaft
+  ctx.globalAlpha = 0.92 * pulse;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(ax + Math.cos(ang2D)*arrowLen, ay + Math.sin(ang2D)*arrowLen);
+  ctx.stroke();
+
+  // Arrowhead
+  var hx = ax + Math.cos(ang2D)*arrowLen;
+  var hy = ay + Math.sin(ang2D)*arrowLen;
+  var headLen = 16, headAngle = 0.48;
+  ctx.fillStyle = col;
+  ctx.globalAlpha = 0.95 * pulse;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.lineTo(hx - Math.cos(ang2D - headAngle)*headLen, hy - Math.sin(ang2D - headAngle)*headLen);
+  ctx.lineTo(hx - Math.cos(ang2D + headAngle)*headLen, hy - Math.sin(ang2D + headAngle)*headLen);
+  ctx.closePath();
+  ctx.fill();
+
+  // Distance label
+  ctx.globalAlpha = 0.82 * pulse;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  var labelX = ax + Math.cos(ang2D + Math.PI/2) * 18;
+  var labelY = ay + Math.sin(ang2D + Math.PI/2) * 18;
+  ctx.fillText(Math.round(dist3D) + 'm', labelX, labelY);
+
+  ctx.restore();
+}
+
+
+function buildDogShadow() {
+  if (dogShadow) scene.remove(dogShadow);
+  var shadowTex = (function() {
+    var c = document.createElement('canvas'); c.width=64; c.height=64;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(32,32,2, 32,32,30);
+    g.addColorStop(0, 'rgba(0,0,0,0.55)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  })();
+  var mat = new THREE.MeshBasicMaterial({
+    map: shadowTex, transparent: true, depthWrite: false, opacity: 1
+  });
+  dogShadow = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), mat);
+  dogShadow.rotation.x = -Math.PI/2;
+  dogShadow.position.y = 0.02;
+  scene.add(dogShadow);
+}
+function buildDog() {
+  if (dogRoot) {
+    // BUG FIX: properly dispose old dog geometries and materials
+    dogRoot.traverse(function(obj) {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(function(m){ m.dispose(); });
+        else obj.material.dispose();
+      }
+    });
+    scene.remove(dogRoot);
+  }
+  dogRoot  = new THREE.Group();
+  dogModel = new THREE.Group();
+  dogLegs  = [];
+  dogRoot.add(dogModel);
+
+  if      (G.dogType === 'colin') buildColin();
+  else if (G.dogType === 'zippo') buildZippo();
+  else                            buildMomo();
+
+  scene.add(dogRoot);
+}
+
+// shared helpers
+function mat(hex, rough, metal, emissiveHex) {
+  var m = new THREE.MeshStandardMaterial({ color: hex, roughness: rough||.85, metalness: metal||0 });
+  if (emissiveHex !== undefined) m.emissive = new THREE.Color(emissiveHex);
+  return m;
+}
+function meshAdd(geo, material, px, py, pz, parent) {
+  var m = new THREE.Mesh(geo, material);
+  m.position.set(px||0, py||0, pz||0);
+  m.castShadow = true; m.receiveShadow = true;
+  (parent || dogModel).add(m);
+  return m;
+}
+function addLegs(upperMat, lowerMat, s) {
+  var defs = [
+    { x: .135*s, z:  .36*s, phase: 0        },
+    { x:-.135*s, z:  .36*s, phase: Math.PI  },
+    { x: .135*s, z: -.34*s, phase: Math.PI  },
+    { x:-.135*s, z: -.34*s, phase: 0        },
+  ];
+  defs.forEach(function(d) {
+    var lg = new THREE.Group();
+    lg.position.set(d.x, .42*s, d.z);
+    dogModel.add(lg);
+    var up = new THREE.Mesh(new THREE.BoxGeometry(.13*s,.32*s,.13*s), upperMat);
+    up.position.y = -.16*s; up.castShadow = true; lg.add(up);
+    var kneeG = new THREE.Group(); kneeG.position.y = -.32*s; lg.add(kneeG);
+    var lo = new THREE.Mesh(new THREE.BoxGeometry(.11*s,.30*s,.11*s), lowerMat);
+    lo.position.y = -.15*s; lo.castShadow = true; kneeG.add(lo);
+    var pw = new THREE.Mesh(new THREE.BoxGeometry(.15*s,.08*s,.19*s), lowerMat);
+    pw.position.set(0,-.31*s,.03*s); pw.castShadow=true; kneeG.add(pw);
+    dogLegs.push({ node: lg, knee: kneeG, phase: d.phase });
+  });
+}
+
+// COLIN - Black & White BC, both ears fully erect
+function buildColin() {
+  var s = 1.0;
+  var BLACK = mat(0x0d0d12, .86, .06);
+  var WHITE = mat(0xf0f0f0, .80, .0);
+  var NOSE  = mat(0x100808, .38, .04);
+  var EYE   = mat(0x0a0a10, .10, .12);
+  var EYEHI = mat(0xffffff, .05, .0, 0xcccccc);
+  var BROW  = mat(0x3a2810, .80);
+
+  // Body
+  meshAdd(new THREE.BoxGeometry(.54*s,.50*s,1.10*s), BLACK, 0,.50*s,0);
+  meshAdd(new THREE.BoxGeometry(.50*s,.38*s,.40*s),  WHITE, 0,.50*s,.42*s);
+  meshAdd(new THREE.BoxGeometry(.42*s,.16*s,.80*s),  WHITE, 0,.28*s,.02*s);
+  meshAdd(new THREE.BoxGeometry(.48*s,.20*s,.22*s),  WHITE, 0,.72*s,.30*s);
+
+  // Neck
+  var neck = new THREE.Group(); neck.position.set(0,.76*s,.34*s); neck.rotation.x=-.28; dogModel.add(neck);
+  meshAdd(new THREE.BoxGeometry(.38*s,.36*s,.36*s), BLACK, 0,.12*s,0, neck);
+  meshAdd(new THREE.BoxGeometry(.34*s,.36*s,.34*s), WHITE, 0,.12*s,.03*s, neck);
+
+  // Head
+  var headG = new THREE.Group(); headG.position.set(0,1.08*s,.50*s); headG.rotation.x=.08; dogModel.add(headG);
+  meshAdd(new THREE.BoxGeometry(.46*s,.44*s,.50*s), BLACK, 0,0,0, headG);
+  meshAdd(new THREE.BoxGeometry(.10*s,.40*s,.48*s), WHITE, 0,.04*s,.01*s, headG);
+  var muzzle = new THREE.Group(); muzzle.position.set(0,-.06*s,.28*s); headG.add(muzzle);
+  meshAdd(new THREE.BoxGeometry(.28*s,.22*s,.32*s), WHITE, 0,0,0, muzzle);
+  var nm = meshAdd(new THREE.SphereGeometry(.075*s,10,8), NOSE, 0,.06*s,.17*s, muzzle);
+  nm.scale.set(1,.65,.85);
+  meshAdd(new THREE.BoxGeometry(.20*s,.04*s,.04*s), NOSE, 0,-.07*s,.17*s, muzzle);
+
+  [-1,1].forEach(function(sd) {
+    var eg = new THREE.Group(); eg.position.set(sd*.17*s,.10*s,.22*s); headG.add(eg);
+    meshAdd(new THREE.SphereGeometry(.082*s,10,10), EYE,   0,0,0, eg);
+    meshAdd(new THREE.SphereGeometry(.028*s,7,7),   EYEHI, .02*sd,.03*s,.07*s, eg);
+    meshAdd(new THREE.SphereGeometry(.035*s,7,7),   BROW,  sd*.17*s,.20*s,.23*s, headG);
+    // Fully erect ear
+    var earG = new THREE.Group(); earG.position.set(sd*.22*s,.20*s,-.08*s);
+    earG.rotation.z=sd*.12; earG.rotation.x=-.10; headG.add(earG);
+    var oe = new THREE.Mesh(new THREE.CylinderGeometry(.01*s,.14*s,.38*s,4), BLACK);
+    oe.position.y=.19*s; oe.castShadow=true; earG.add(oe);
+    var ie = new THREE.Mesh(new THREE.CylinderGeometry(.005*s,.09*s,.30*s,4), mat(0xffd8d0,.9));
+    ie.position.set(0,.17*s,.02*s); earG.add(ie);
+  });
+
+  // Tail
+  var tG = new THREE.Group(); tG.position.set(0,.60*s,-.56*s); tG.rotation.x=.55; dogModel.add(tG); dogTail=tG;
+  var t1=new THREE.Mesh(new THREE.CylinderGeometry(.09*s,.07*s,.35*s,8),BLACK); t1.position.y=.17*s; t1.castShadow=true; tG.add(t1);
+  var g2=new THREE.Group(); g2.position.y=.34*s; g2.rotation.x=-.50; tG.add(g2);
+  var t2=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.04*s,.28*s,8),BLACK); t2.position.y=.14*s; t2.castShadow=true; g2.add(t2);
+  var g3=new THREE.Group(); g3.position.y=.28*s; g3.rotation.x=-.40; g2.add(g3);
+  var t3=new THREE.Mesh(new THREE.CylinderGeometry(.04*s,.01*s,.20*s,8),WHITE); t3.position.y=.10*s; t3.castShadow=true; g3.add(t3);
+
+  addLegs(BLACK, WHITE, s);
+  [0,1,2,3].forEach(function(i) { meshAdd(new THREE.BoxGeometry(.13*s,.12*s,.13*s), WHITE, 0,-.56*s,0, dogLegs[i].node); });
+}
+
+// ZIPPO - Tricolor BC; LEFT ear erect, RIGHT half-drop
+function buildZippo() {
+  var s = 1.0;
+  var BLACK = mat(0x0d0d12, .86, .06);
+  var WHITE = mat(0xf0f0f0, .80, .0);
+  var TAN   = mat(0xc26a18, .78, .02);
+  var NOSE  = mat(0x100808, .38, .04);
+  var EYE   = mat(0x2a1800, .12, .08);
+  var EYEHI = mat(0xffffff, .05, .0, 0xcccccc);
+
+  // Body
+  meshAdd(new THREE.BoxGeometry(.54*s,.50*s,1.10*s), BLACK, 0,.50*s,0);
+  meshAdd(new THREE.BoxGeometry(.50*s,.36*s,.38*s),  WHITE, 0,.50*s,.43*s);
+  meshAdd(new THREE.BoxGeometry(.46*s,.18*s,.24*s),  WHITE, 0,.72*s,.30*s);
+  meshAdd(new THREE.BoxGeometry(.40*s,.14*s,.75*s),  WHITE, 0,.28*s,.02*s);
+  [-1,1].forEach(function(sd) { meshAdd(new THREE.BoxGeometry(.06*s,.36*s,.60*s), TAN, sd*.27*s,.52*s,-.08*s); });
+
+  // Neck
+  var neck = new THREE.Group(); neck.position.set(0,.76*s,.34*s); neck.rotation.x=-.28; dogModel.add(neck);
+  meshAdd(new THREE.BoxGeometry(.38*s,.36*s,.36*s), BLACK, 0,.12*s,0, neck);
+  meshAdd(new THREE.BoxGeometry(.34*s,.36*s,.34*s), WHITE, 0,.12*s,.03*s, neck);
+
+  // Head
+  var headG = new THREE.Group(); headG.position.set(0,1.08*s,.50*s); headG.rotation.x=.08; dogModel.add(headG);
+  meshAdd(new THREE.BoxGeometry(.46*s,.44*s,.50*s), BLACK, 0,0,0, headG);
+  meshAdd(new THREE.BoxGeometry(.12*s,.42*s,.48*s), WHITE, 0,.04*s,.01*s, headG);
+  [-1,1].forEach(function(sd) {
+    meshAdd(new THREE.SphereGeometry(.06*s,8,8),    TAN, sd*.15*s,.18*s,.25*s, headG);
+    meshAdd(new THREE.BoxGeometry(.07*s,.16*s,.18*s), TAN, sd*.22*s,-.02*s,.22*s, headG);
+  });
+  var muzzle = new THREE.Group(); muzzle.position.set(0,-.06*s,.28*s); headG.add(muzzle);
+  meshAdd(new THREE.BoxGeometry(.28*s,.22*s,.32*s), WHITE, 0,0,0, muzzle);
+  var nm = meshAdd(new THREE.SphereGeometry(.075*s,10,8), NOSE, 0,.06*s,.17*s, muzzle);
+  nm.scale.set(1,.65,.85);
+  meshAdd(new THREE.BoxGeometry(.20*s,.04*s,.04*s), NOSE, 0,-.07*s,.17*s, muzzle);
+
+  [-1,1].forEach(function(sd) {
+    var eg = new THREE.Group(); eg.position.set(sd*.17*s,.10*s,.22*s); headG.add(eg);
+    meshAdd(new THREE.SphereGeometry(.082*s,10,10), EYE,   0,0,0, eg);
+    meshAdd(new THREE.SphereGeometry(.028*s,7,7),   EYEHI, .02*sd,.03*s,.07*s, eg);
+  });
+
+  // Ears: LEFT (sd=-1) erect, RIGHT (sd=1) half-drop
+  [-1,1].forEach(function(sd) {
+    var earG = new THREE.Group(); earG.position.set(sd*.22*s,.20*s,-.08*s);
+    earG.rotation.z=sd*.10; headG.add(earG);
+    if (sd === -1) {
+      // Erect
+      var oe=new THREE.Mesh(new THREE.CylinderGeometry(.01*s,.14*s,.38*s,4),BLACK); oe.position.y=.19*s; oe.castShadow=true; earG.add(oe);
+      var ie=new THREE.Mesh(new THREE.CylinderGeometry(.005*s,.09*s,.30*s,4),mat(0xffd8d0,.9)); ie.position.set(0,.17*s,.02*s); earG.add(ie);
+    } else {
+      // Half-drop: base up, tip folded forward
+      var base=new THREE.Mesh(new THREE.BoxGeometry(.13*s,.20*s,.11*s),BLACK); base.position.y=.10*s; base.castShadow=true; earG.add(base);
+      var tipG=new THREE.Group(); tipG.position.y=.20*s; tipG.rotation.x=.95; tipG.rotation.z=sd*.15; earG.add(tipG);
+      var to=new THREE.Mesh(new THREE.CylinderGeometry(.01*s,.10*s,.22*s,4),BLACK); to.position.y=.11*s; to.castShadow=true; tipG.add(to);
+      var ti=new THREE.Mesh(new THREE.CylinderGeometry(.005*s,.06*s,.17*s,4),mat(0xffd8d0,.9)); ti.position.set(0,.10*s,.02*s); tipG.add(ti);
+    }
+  });
+
+  // Tail
+  var tG=new THREE.Group(); tG.position.set(0,.60*s,-.56*s); tG.rotation.x=.55; dogModel.add(tG); dogTail=tG;
+  var t1=new THREE.Mesh(new THREE.CylinderGeometry(.09*s,.07*s,.35*s,8),BLACK); t1.position.y=.17*s; t1.castShadow=true; tG.add(t1);
+  var g2=new THREE.Group(); g2.position.y=.34*s; g2.rotation.x=-.50; tG.add(g2);
+  var t2=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.04*s,.28*s,8),BLACK); t2.position.y=.14*s; t2.castShadow=true; g2.add(t2);
+  var g3=new THREE.Group(); g3.position.y=.28*s; g3.rotation.x=-.40; g2.add(g3);
+  var t3=new THREE.Mesh(new THREE.CylinderGeometry(.04*s,.01*s,.20*s,8),WHITE); t3.position.y=.10*s; t3.castShadow=true; g3.add(t3);
+
+  addLegs(BLACK, WHITE, s);
+  [0,1,2,3].forEach(function(i) { meshAdd(new THREE.BoxGeometry(.13*s,.12*s,.13*s), WHITE, 0,-.56*s,0, dogLegs[i].node); });
+  [2,3].forEach(function(i) { meshAdd(new THREE.BoxGeometry(.09*s,.20*s,.09*s), TAN, 0,-.36*s,0, dogLegs[i].node); });
+}
+
+// MOMO - White Chihuahua; apple dome skull, huge erect ears, big eyes
+function buildMomo() {
+  var s = .58;
+  var WHITE = mat(0xf5f5f2, .78, .0);
+  var CREAM = mat(0xeee4cc, .82, .0);
+  var NOSE  = mat(0x1a0a0a, .40, .04);
+  var EYE   = mat(0x1a1a24, .10, .12);
+  var EYEHI = mat(0xffffff, .05, .0, 0xcccccc);
+  var PINK  = mat(0xffb8c0, .88, .0);
+  var LIP   = mat(0xcc8890, .85, .0);
+
+  // Body - compact
+  meshAdd(new THREE.BoxGeometry(.42*s,.44*s,.88*s), WHITE, 0,.44*s,0);
+  meshAdd(new THREE.BoxGeometry(.40*s,.36*s,.32*s), WHITE, 0,.46*s,.36*s);
+  meshAdd(new THREE.BoxGeometry(.34*s,.14*s,.62*s), CREAM, 0,.26*s,0);
+
+  // Neck - short
+  var neck=new THREE.Group(); neck.position.set(0,.72*s,.28*s); neck.rotation.x=-.22; dogModel.add(neck);
+  meshAdd(new THREE.BoxGeometry(.32*s,.28*s,.30*s), WHITE, 0,.10*s,0, neck);
+
+  // Head - apple dome
+  var headG=new THREE.Group(); headG.position.set(0,1.00*s,.40*s); headG.rotation.x=.06; dogModel.add(headG);
+  var skull=new THREE.Mesh(new THREE.SphereGeometry(.26*s,12,10), WHITE);
+  skull.scale.set(1,1.05,.95); skull.castShadow=true; headG.add(skull);
+  meshAdd(new THREE.BoxGeometry(.20*s,.08*s,.10*s), WHITE, 0,-.06*s,.20*s, headG);
+  // Short muzzle
+  var muzzle=new THREE.Group(); muzzle.position.set(0,-.10*s,.22*s); headG.add(muzzle);
+  meshAdd(new THREE.BoxGeometry(.20*s,.16*s,.22*s), WHITE, 0,0,0, muzzle);
+  var nm=meshAdd(new THREE.SphereGeometry(.055*s,10,8), NOSE, 0,.06*s,.12*s, muzzle);
+  nm.scale.set(1,.65,.80);
+  meshAdd(new THREE.BoxGeometry(.12*s,.03*s,.03*s), LIP, 0,-.06*s,.12*s, muzzle);
+
+  // Big round eyes
+  [-1,1].forEach(function(sd) {
+    var eg=new THREE.Group(); eg.position.set(sd*.13*s,.06*s,.20*s); headG.add(eg);
+    meshAdd(new THREE.SphereGeometry(.096*s,12,12), EYE,   0,0,0, eg);
+    meshAdd(new THREE.SphereGeometry(.032*s,8,8),   EYEHI, .02*sd,.04*s,.09*s, eg);
+    meshAdd(new THREE.SphereGeometry(.016*s,6,6),   EYEHI, -.03*sd,-.02*s,.09*s, eg);
+  });
+
+  // Very large erect ears - hallmark chihuahua
+  [-1,1].forEach(function(sd) {
+    var earG=new THREE.Group(); earG.position.set(sd*.22*s,.10*s,-.05*s);
+    earG.rotation.z=sd*.45; earG.rotation.x=-.12; headG.add(earG);
+    var oe=new THREE.Mesh(new THREE.CylinderGeometry(.005*s,.18*s,.50*s,5), WHITE);
+    oe.position.y=.25*s; oe.castShadow=true; earG.add(oe);
+    var ie=new THREE.Mesh(new THREE.CylinderGeometry(.003*s,.12*s,.40*s,5), PINK);
+    ie.position.set(0,.23*s,.015*s); earG.add(ie);
+    var vm=mat(0xcc9090,.9);
+    var v=new THREE.Mesh(new THREE.BoxGeometry(.008*s,.28*s,.006*s), vm);
+    v.position.set(sd*.03*s,.22*s,.02*s); earG.add(v);
+  });
+
+  // Thin curled tail
+  var tG=new THREE.Group(); tG.position.set(0,.52*s,-.44*s); tG.rotation.x=.80; dogModel.add(tG); dogTail=tG;
+  var t1=new THREE.Mesh(new THREE.CylinderGeometry(.055*s,.04*s,.25*s,8),CREAM); t1.position.y=.12*s; t1.castShadow=true; tG.add(t1);
+  var g2=new THREE.Group(); g2.position.y=.24*s; g2.rotation.x=-1.0; tG.add(g2);
+  var t2=new THREE.Mesh(new THREE.CylinderGeometry(.04*s,.025*s,.22*s,8),WHITE); t2.position.y=.11*s; t2.castShadow=true; g2.add(t2);
+  var g3=new THREE.Group(); g3.position.y=.22*s; g3.rotation.x=-.60; g2.add(g3);
+  var t3=new THREE.Mesh(new THREE.CylinderGeometry(.025*s,.008*s,.15*s,8),WHITE); t3.position.y=.07*s; t3.castShadow=true; g3.add(t3);
+
+  addLegs(WHITE, CREAM, s);
+}
+
+// ─── OWNER ────────────────────────────────────────────────────────
+function buildOwner() {
+  if (ownerMesh) scene.remove(ownerMesh);
+  ownerMesh = new THREE.Group();
+
+  // Materials
+  var SHIRT  = new THREE.MeshStandardMaterial({color:0x1e3a6e, roughness:.82}); // blue team shirt
+  var SHORTS = new THREE.MeshStandardMaterial({color:0x111d30, roughness:.85});
+  var SOCK   = new THREE.MeshStandardMaterial({color:0xf0f0f0, roughness:.80});
+  var SHOE   = new THREE.MeshStandardMaterial({color:0x1a1a2a, roughness:.75, metalness:.08});
+  var SKIN   = new THREE.MeshStandardMaterial({color:0xffccaa, roughness:.84});
+  var DARK   = new THREE.MeshStandardMaterial({color:0x1a0a00, roughness:.88});
+  var HAIR   = new THREE.MeshStandardMaterial({color:0x1a0a00, roughness:1.0});
+  var CAPMAT = new THREE.MeshStandardMaterial({color:0xdd2222, roughness:.82}); // red cap
+  var GLASS  = new THREE.MeshStandardMaterial({color:0x88aacc, roughness:.1, metalness:.3, transparent:true, opacity:.6});
+
+  function add(geo, material, x, y, z, parent) {
+    var m = new THREE.Mesh(geo, material);
+    m.position.set(x||0, y||0, z||0);
+    m.castShadow = true; m.receiveShadow = true;
+    (parent || ownerMesh).add(m); return m;
+  }
+
+  // ── Feet & Shoes ────────────────────────────────────────────────
+  [-.18, .18].forEach(function(lx) {
+    // Sock
+    add(new THREE.CylinderGeometry(.10,.10,.24,8), SOCK, lx, .12, 0);
+    // Shoe — slightly elongated forward
+    var shoe = add(new THREE.BoxGeometry(.22,.14,.38), SHOE, lx, .07, .06);
+    shoe.rotation.x = -.06;
+  });
+
+  // ── Lower legs ──────────────────────────────────────────────────
+  [-.18, .18].forEach(function(lx) {
+    add(new THREE.BoxGeometry(.20,.56,.20), SOCK,   lx, .52, 0);
+  });
+
+  // ── Knees ───────────────────────────────────────────────────────
+  [-.18, .18].forEach(function(lx) {
+    add(new THREE.SphereGeometry(.115,8,8), SKIN, lx, .82, .02);
+  });
+
+  // ── Upper legs / thighs ──────────────────────────────────────────
+  [-.18, .18].forEach(function(lx) {
+    add(new THREE.BoxGeometry(.24,.60,.24), SHORTS, lx, 1.14, 0);
+  });
+
+  // ── Shorts ──────────────────────────────────────────────────────
+  add(new THREE.BoxGeometry(.60,.30,.42), SHORTS, 0, 1.50, 0);
+
+  // ── Belt ────────────────────────────────────────────────────────
+  add(new THREE.BoxGeometry(.64,.08,.44), DARK, 0, 1.67, 0);
+
+  // ── Torso / shirt ───────────────────────────────────────────────
+  add(new THREE.BoxGeometry(.72,1.00,.48), SHIRT, 0, 2.05, 0);
+
+  // Shirt number "7" area (simple coloured patch)
+  add(new THREE.BoxGeometry(.22,.30,.04), new THREE.MeshStandardMaterial({color:0xffd700,roughness:.8}), 0, 2.15, .25);
+
+  // ── Shoulders (rounded) ──────────────────────────────────────────
+  [-.42, .42].forEach(function(sx) {
+    add(new THREE.SphereGeometry(.20,8,8), SHIRT, sx, 2.46, 0);
+  });
+
+  // ── Neck ────────────────────────────────────────────────────────
+  add(new THREE.CylinderGeometry(.13,.16,.22,9), SKIN, 0, 2.72, 0);
+
+  // ── Head ────────────────────────────────────────────────────────
+  var headG = new THREE.Group(); headG.position.set(0, 3.04, 0); ownerMesh.add(headG);
+  // Skull
+  var skull = add(new THREE.SphereGeometry(.28,12,10), SKIN, 0,0,0, headG);
+  skull.scale.set(1, 1.05, .95);
+  // Jaw / chin
+  add(new THREE.BoxGeometry(.38,.18,.32), SKIN, 0,-.18,0, headG);
+  // Nose
+  add(new THREE.BoxGeometry(.09,.10,.12), SKIN, 0,-.04,.25, headG);
+  // Mouth line
+  add(new THREE.BoxGeometry(.16,.04,.04), DARK, 0,-.16,.24, headG);
+  // Eyes
+  [-1,1].forEach(function(esd) {
+    add(new THREE.SphereGeometry(.065,8,8), new THREE.MeshStandardMaterial({color:0x1a1000,roughness:.2}), esd*.11, .04, .24, headG);
+    add(new THREE.SphereGeometry(.022,6,6), new THREE.MeshStandardMaterial({color:0xffffff,roughness:.05,emissive:new THREE.Color(0xbbbbbb)}), esd*.12,.07,.29, headG);
+    // Sunglasses lens
+    add(new THREE.BoxGeometry(.14,.10,.04), GLASS, esd*.11,.04,.28, headG);
+  });
+  // Sunglasses bridge + frame
+  add(new THREE.BoxGeometry(.10,.04,.04), new THREE.MeshStandardMaterial({color:0x333333,roughness:.4,metalness:.6}), 0,.04,.29, headG);
+  // Ears
+  [-.28,.28].forEach(function(ex) {
+    add(new THREE.SphereGeometry(.07,6,6), SKIN, ex,.01,-.06, headG);
+  });
+
+  // ── Cap ──────────────────────────────────────────────────────────
+  add(new THREE.CylinderGeometry(.20,.26,.16,12), CAPMAT, 0,.22,0, headG);
+  // Brim
+  var brim = add(new THREE.CylinderGeometry(.34,.34,.05,12), CAPMAT, 0,.13,.06, headG);
+  brim.scale.z = .55; // flattened brim pointing forward
+
+  // ── Left arm — throwing arm, raised forward and slightly out ─────
+  var throwArmG = new THREE.Group();
+  throwArmG.position.set(-.44, 2.44, 0);
+  ownerMesh.add(throwArmG);
+  // Upper arm
+  var upperThrow = add(new THREE.CylinderGeometry(.12,.10,.52,8), SHIRT, 0,-.26,0, throwArmG);
+  throwArmG.rotation.z =  .55;  // raised out
+  throwArmG.rotation.x = -.55;  // forward
+  // Elbow
+  var elbowG = new THREE.Group(); elbowG.position.y = -.52; throwArmG.add(elbowG);
+  add(new THREE.SphereGeometry(.115,8,8), SKIN, 0,0,0, elbowG);
+  // Forearm
+  var foreThrowG = new THREE.Group(); foreThrowG.position.y = -.08; elbowG.add(foreThrowG);
+  foreThrowG.rotation.x = -.55; // extend outward for throw pose
+  add(new THREE.CylinderGeometry(.10,.08,.46,8), SKIN, 0,-.23,0, foreThrowG);
+  // Hand
+  var handThrow = new THREE.Group(); handThrow.position.y = -.46; foreThrowG.add(handThrow);
+  add(new THREE.BoxGeometry(.16,.14,.18), SKIN, 0,-.07,0, handThrow);
+
+  // ── Right arm — tucked at side / slightly back ────────────────────
+  var restArmG = new THREE.Group();
+  restArmG.position.set(.44, 2.44, 0);
+  ownerMesh.add(restArmG);
+  restArmG.rotation.z = -.22;
+  restArmG.rotation.x =  .15;
+  add(new THREE.CylinderGeometry(.12,.10,.52,8), SHIRT, 0,-.26,0, restArmG);
+  var elbowRG = new THREE.Group(); elbowRG.position.y = -.52; restArmG.add(elbowRG);
+  add(new THREE.SphereGeometry(.115,8,8), SKIN, 0,0,0, elbowRG);
+  var foreRestG = new THREE.Group(); foreRestG.position.y = -.08; elbowRG.add(foreRestG);
+  foreRestG.rotation.x = .35;
+  add(new THREE.CylinderGeometry(.10,.08,.44,8), SKIN, 0,-.22,0, foreRestG);
+  add(new THREE.BoxGeometry(.16,.14,.18), SKIN, 0,-.44,0, foreRestG);
+
+  ownerHeadG = headG;
+  ownerThrowArmG = throwArmG;
+  ownerRestArmG = restArmG;
+
+  // Invisible marker at the hand position for frisbee attachment
+  var ownerHandMarker = new THREE.Object3D();
+  ownerHandMarker.position.set(0, -.46, 0);
+  foreThrowG.add(ownerHandMarker);
+  ownerMesh._handMarker = ownerHandMarker;
+
+  ownerMesh.position.set(0, 0, -4);
+  ownerMesh.rotation.y = 0;
+  scene.add(ownerMesh);
+
+  // Blob shadow under owner
+  if (ownerShadow) scene.remove(ownerShadow);
+  var sc = document.createElement('canvas'); sc.width=64; sc.height=64;
+  var sctx = sc.getContext('2d');
+  var sg = sctx.createRadialGradient(32,32,3,32,32,30);
+  sg.addColorStop(0,'rgba(0,0,0,0.5)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+  sctx.fillStyle=sg; sctx.fillRect(0,0,64,64);
+  ownerShadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.2, 2.2),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc), transparent:true, depthWrite:false, opacity:0.6})
+  );
+  ownerShadow.rotation.x = -Math.PI/2;
+  ownerShadow.position.set(0, 0.01, -4);
+  scene.add(ownerShadow);
+}
+
+// ─── FRISBEE ──────────────────────────────────────────────────────
+function buildFrisbee() {
+  if (frisbeeGroup) scene.remove(frisbeeGroup);
+  frisbeeGroup = new THREE.Group();
+  var dM=new THREE.MeshStandardMaterial({color:0xff2255,emissive:new THREE.Color(0x550011),roughness:.22,metalness:.15});
+  var rM=new THREE.MeshStandardMaterial({color:0xff7788,emissive:new THREE.Color(0x330008),roughness:.14,metalness:.22});
+  var cM=new THREE.MeshStandardMaterial({color:0xff3366,emissive:new THREE.Color(0x660018),roughness:.08,metalness:.32});
+
+  var disc=new THREE.Mesh(new THREE.CylinderGeometry(.6,.65,.10,32),dM);
+  disc.castShadow=true; frisbeeGroup.add(disc);
+  var cap=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.07,20),cM);
+  cap.position.y=.05; frisbeeGroup.add(cap);
+  frisbeeGroup.position.set(0,.05,-3);
+  scene.add(frisbeeGroup);
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────
+function initControls() {
+  var knob = document.getElementById('joystick-knob');
+  var cont = document.getElementById('joystick-container');
+  var joyTouchId = null;  // track which touch finger owns the joystick
+
+  function handleMove(e) {
+    if (!G.input.joyActive) return;
+    // Find the touch that belongs to the joystick
+    var t = null;
+    if (e.touches) {
+      for (var i=0; i<e.touches.length; i++) {
+        if (joyTouchId === null || e.touches[i].identifier === joyTouchId) {
+          t = e.touches[i]; break;
+        }
+      }
+      if (!t) return;
+    } else { t = e; }
+    var r = cont.getBoundingClientRect();
+    var dx=t.clientX-(r.left+r.width/2), dy=t.clientY-(r.top+r.height/2);
+    var dist=Math.min(54,Math.sqrt(dx*dx+dy*dy));
+    var ang=Math.atan2(dy,dx);
+    knob.style.transform='translate('+Math.cos(ang)*dist+'px,'+Math.sin(ang)*dist+'px)';
+    G.input.x=Math.cos(ang)*dist/54; G.input.y=Math.sin(ang)*dist/54; G.input.active=true;
+  }
+  function endJoy(e) {
+    // Only reset if the joystick's specific touch ended (not the throw button touch)
+    if (e && e.changedTouches) {
+      var joyEnded = false;
+      for (var i=0; i<e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === joyTouchId) { joyEnded = true; break; }
+      }
+      if (!joyEnded) return;  // throw button lifted — don't reset joystick
+    }
+    joyTouchId = null;
+    G.input.joyActive=false; G.input.active=false;
+    knob.style.transform='translate(0,0)'; G.input.x=0; G.input.y=0;
+  }
+  cont.addEventListener('mousedown', function(){ G.input.joyActive=true; });
+  cont.addEventListener('touchstart', function(e){
+    G.input.joyActive=true;
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      joyTouchId = e.changedTouches[0].identifier;
+    }
+    e.preventDefault();
+  }, {passive:false});
+  window.addEventListener('mousemove', handleMove);
+  window.addEventListener('touchmove', handleMove, {passive:true});
+  window.addEventListener('mouseup', endJoy);
+  window.addEventListener('touchend', endJoy);
+  window.addEventListener('keydown', function(e){
+    G.keys[e.key]=true;
+    if(e.key===' '||e.key==='Spacebar'){e.preventDefault(); throwFrisbee();}
+  });
+  window.addEventListener('keyup', function(e){ G.keys[e.key]=false; });
+}
+
+// ─── GAME LOOP ────────────────────────────────────────────────────
+var clock = { last:0 };
+// Pre-allocated vectors to avoid GC pressure every frame
+var _camOffset = new THREE.Vector3();
+var _camTarget = new THREE.Vector3();
+var _camLookAt = new THREE.Vector3();
+var _camEuler  = new THREE.Euler();
+var _frameCount = 0;
+var _camAirCatchOverride = false;  // dramatic camera during air catch
+function loop(ts) {
+  requestAnimationFrame(loop);
+  _frameCount++;
+  var dt = Math.min((ts - clock.last)*.001, .05);
+  clock.last = ts;
+  if (G.started && !G.over) tickParticles();
+  else if (particles.length > 0) tickParticles();
+  if (G.started && !G.paused && !G.over) gameStep(dt);
+  // Camera follow — reuse pre-allocated objects
+  if (dogRoot) {
+    if (_camAirCatchOverride) {
+      // Dramatic pull-back during air catch: wider, higher angle
+      _camEuler.set(0, G.dogRot, 0);
+      _camOffset.set(0, 6.5, -13).applyEuler(_camEuler);
+      _camTarget.copy(dogRoot.position).add(_camOffset);
+      camera.position.lerp(_camTarget, .06);  // slower lerp = cinematic
+    } else {
+      _camEuler.set(0, G.dogRot, 0);
+      _camOffset.set(0, 3.2, -7).applyEuler(_camEuler);
+      _camTarget.copy(dogRoot.position).add(_camOffset);
+      camera.position.lerp(_camTarget, .1);
+    }
+    _camEuler.set(0, G.dogRot, 0);
+    _camLookAt.set(0, 0.8, 9).applyEuler(_camEuler);
+    _camLookAt.add(dogRoot.position);
+    camera.lookAt(_camLookAt);
+  }
+  renderer.render(scene, camera);
+}
+
+function gameStep(dt) {
+  animT += dt;
+  var mx=G.input.x, my=G.input.y;
+  if (!G.input.joyActive) {
+    my = G.keys['ArrowUp']||G.keys['w'] ? -1 : G.keys['ArrowDown']||G.keys['s'] ? 1 : 0;
+    mx = G.keys['ArrowLeft']||G.keys['a'] ? -1 : G.keys['ArrowRight']||G.keys['d'] ? 1 : 0;
+  }
+  var spd = G.dogType==='momo'?1.28:1;
+  if (mx||my) {
+    G.dogRot -= mx*PHYS.rotSpeed;
+    G.velZ += (-my*PHYS.maxSpeed*spd - G.velZ)*PHYS.accel;
+  } else { G.velZ *= PHYS.friction; }
+
+  dogRoot.rotation.y = G.dogRot;
+  dogRoot.position.x += Math.sin(G.dogRot)*G.velZ;
+  dogRoot.position.z += Math.cos(G.dogRot)*G.velZ;
+  // BUG FIX: clamp dog to field boundaries
+  // Boundary restriction removed — dog can chase disc freely
+  // dogRoot.position.x = Math.max(-PHYS.boundX, Math.min(PHYS.boundX, dogRoot.position.x));
+  // dogRoot.position.z = Math.max(PHYS.boundZMin, Math.min(PHYS.boundZMax, dogRoot.position.z));
+
+  // Jump
+  var fPos = frisbeeGroup.position;
+  var dogDist = dogRoot.position.distanceTo(fPos);
+  if (G.flying&&!G.hasDisk&&!G.jumping&&fPos.y>1.2&&dogDist<8) { G.jumping=true; G.vVel=.22; }
+  if (G.jumping) {
+    dogModel.position.y += G.vVel; G.vVel -= .013;
+    if (dogModel.position.y<=0) { dogModel.position.y=0; G.jumping=false; G.vVel=0; }
+  }
+
+  // Animate
+  var speed = Math.abs(G.velZ);
+  var freq = speed>.02 ? animT*14 : 0;
+  dogLegs.forEach(function(l){
+    var swing = Math.sin(freq+l.phase);
+    l.node.rotation.x = swing * (speed*22);
+    // knee bends opposite to swing for realistic gait
+    if (l.knee) l.knee.rotation.x = Math.max(0, -swing) * (speed*18);
+  });
+  if (!G.jumping) dogModel.position.y = speed>.02 ? Math.abs(Math.sin(freq))*.09 : 0;
+  if (dogTail) { dogTail.rotation.y = Math.sin(animT*18) * .75 * (G.hasDisk?1.2:.35); }
+
+  // Fans — track dog + wave arms
+  if (_frameCount % 4 === 0) {
+    var cheerSpeed = G._crowdCheering ? 11 : 3;
+    var cheerAmp   = G._crowdCheering ? 1.0 : 0.55;
+    var dogX = dogRoot.position.x;
+    var dogZ = dogRoot.position.z;
+
+    for (var fi2 = 0; fi2 < fans.length; fi2++) {
+      var f = fans[fi2];
+      // Track dog: angle in world space from fan to dog
+      var fdx = dogX - f.mesh.position.x;
+      var fdz = dogZ - f.mesh.position.z;
+      var worldAngle = Math.atan2(fdx, fdz);
+      // Delta from the fan's resting facing direction
+      var diff = worldAngle - f.baseY;
+      while (diff >  Math.PI) diff -= Math.PI*2;
+      while (diff < -Math.PI) diff += Math.PI*2;
+      // Clamp to ±70° so body doesn't over-rotate
+      var clamped = Math.max(-1.22, Math.min(1.22, diff));
+      var desiredY = f.baseY + clamped;
+      f.mesh.rotation.y += (desiredY - f.mesh.rotation.y) * 0.08;
+
+      // Wave arms (every other fan)
+      if (fi2 % 2 === 0 && f.wave && f.aR && f.aL) {
+        var swing = Math.sin(animT*cheerSpeed + f.phase);
+        f.aR.rotation.x = -1.1 + swing*cheerAmp;
+        f.aL.rotation.x = -1.1 - swing*cheerAmp;
+      }
+    }
+  }
+
+  // Paw prints & disc shadow
+  updatePawPrints(dt);
+  updateDiscShadow();
+  updateOwnerAnim(dt);
+  updateWind(dt);
+  updateDogSpin(dt);
+  updateLandMarks(dt);
+  updateSkyColor();       // BUG FIX: was never called
+  updateDirectionArrow(); // direction arrow toward disc
+  updateAirCatchAnim(dt); // air catch scale pop animation
+  drawWindIndicator();    // compass updates every frame (real-time)
+
+  // Start music on game start (handled in startGame)
+
+  // Clouds drift
+  clouds.forEach(function(c){ c.mesh.position.x+=c.speed; if(c.mesh.position.x>135) c.mesh.position.x=-135; });
+
+  // Zone pips
+  for (var i=1;i<=4;i++) {
+    var pip = document.getElementById('zp'+i);
+    if(pip) pip.classList.toggle('active', fPos.z>=i*10);
+  }
+
+  // Update blob shadow — shrinks and fades as dog jumps higher
+  if (dogShadow) {
+    var jumpH = dogModel.position.y;
+    var shadowScale = Math.max(0.3, 1.0 - jumpH * 0.55);
+    var shadowOpacity = Math.max(0.1, 0.7 - jumpH * 0.25);
+    dogShadow.position.x = dogRoot.position.x;
+    dogShadow.position.z = dogRoot.position.z;
+    dogShadow.scale.setScalar(shadowScale);
+    dogShadow.material.opacity = shadowOpacity;
+  }
+  updateFrisbeeLogic();
+  document.getElementById('timer-val').textContent = G.timeLeft;
+}
+
+function _placeDiscInOwnerHand() {
+  if (!ownerMesh || !frisbeeGroup) return;
+  if (ownerMesh._handMarker) {
+    // Get world position of hand marker
+    var worldPos = new THREE.Vector3();
+    ownerMesh._handMarker.getWorldPosition(worldPos);
+    frisbeeGroup.position.copy(worldPos);
+    frisbeeGroup.rotation.set(0, ownerMesh.rotation.y, 0);
+  } else {
+    // Fallback
+    frisbeeGroup.position.set(ownerMesh.position.x - 0.6, 1.85, ownerMesh.position.z + 0.4);
+  }
+}
+
+function updateOwnerAnim(dt) {
+  if (!ownerMesh || !ownerHeadG) return;
+
+  var dx = dogRoot.position.x - ownerMesh.position.x;
+  var dz = dogRoot.position.z - ownerMesh.position.z;
+  var targetRot = Math.atan2(dx, dz);
+
+  // Smoothly rotate whole body toward dog
+  var dr = targetRot - ownerMesh.rotation.y;
+  while (dr > Math.PI)  dr -= Math.PI*2;
+  while (dr < -Math.PI) dr += Math.PI*2;
+  ownerMesh.rotation.y += dr * 0.06;
+
+  // Head looks at dog — slight extra tilt
+  var headTarget = dr * 0.4;
+  ownerHeadG.rotation.y += (headTarget - ownerHeadG.rotation.y) * 0.1;
+
+  // Throw arm: wind-up before throw, celebration after catch
+  if (ownerThrowArmG) {
+    if (!G.flying && !G.hasDisk && !G.onGround && G.canThrow) {
+      // Ready to throw — arm raised, slight oscillation
+      var wave = Math.sin(animT * 3.5) * 0.15;
+      ownerThrowArmG.rotation.x += (-0.9 + wave - ownerThrowArmG.rotation.x) * 0.08;
+      ownerThrowArmG.rotation.z += (0.65 - ownerThrowArmG.rotation.z) * 0.08;
+    } else if (G._ownerCelebrating) {
+      // Both arms up — celebration wave
+      var cel = Math.sin(animT * 8) * 0.4;
+      ownerThrowArmG.rotation.x += (-1.4 + cel - ownerThrowArmG.rotation.x) * 0.15;
+      ownerRestArmG.rotation.x  += (-1.4 - cel - ownerRestArmG.rotation.x)  * 0.15;
+      ownerThrowArmG.rotation.z += (0.8 - ownerThrowArmG.rotation.z) * 0.12;
+      ownerRestArmG.rotation.z  += (-0.8 - ownerRestArmG.rotation.z) * 0.12;
+    } else {
+      // Idle — arm relaxed
+      ownerThrowArmG.rotation.x += (-0.55 - ownerThrowArmG.rotation.x) * 0.06;
+      ownerThrowArmG.rotation.z += (0.55 - ownerThrowArmG.rotation.z) * 0.06;
+      ownerRestArmG.rotation.x  += (0.15  - ownerRestArmG.rotation.x)  * 0.06;
+      ownerRestArmG.rotation.z  += (-0.22 - ownerRestArmG.rotation.z)  * 0.06;
+    }
+  }
+
+  // Disc shadow while dog is carrying disc back to owner
+  if (discShadow && G.hasDisk) {
+    discShadow.position.x = dogRoot.position.x;
+    discShadow.position.z = dogRoot.position.z;
+    discShadow.material.opacity = 0.3;
+    discShadow.scale.setScalar(0.7);
+  }
+}
+
+// ── Wind ──────────────────────────────────────────────────────────
+function updateWind(dt) {
+  wind.changeTimer -= dt;
+  if (wind.changeTimer <= 0) {
+    var dm = wind._diffMult || 1.0;
+    var cr = wind._changeRate || 1.0;
+    wind.angle  += (Math.random() - 0.5) * 0.8;
+    wind.speed   = (0.2 + Math.random() * 0.7) * dm;
+    wind.changeTimer = (5 + Math.random() * 8) / cr;
+    drawWindIndicator();
+  }
+}
+
+function drawWindIndicator() {
+  var canvas = document.getElementById('wind-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = 72, H = 72, cx = 36, cy = 36, r = 28;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Background ────────────────────────────────────────────────
+  var bgGrad = ctx.createRadialGradient(cx,cy,0, cx,cy,r);
+  bgGrad.addColorStop(0, 'rgba(12,22,44,0.92)');
+  bgGrad.addColorStop(1, 'rgba(5,10,20,0.96)');
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle=bgGrad; ctx.fill();
+
+  // ── Outer ring ────────────────────────────────────────────────
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(212,160,23,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // ── Tick marks ───────────────────────────────────────────────
+  for (var ti=0; ti<8; ti++) {
+    var ta = ti * Math.PI/4;
+    var isCard = ti%2===0;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.sin(ta)*(r-7), cy-Math.cos(ta)*(r-7));
+    ctx.lineTo(cx+Math.sin(ta)*(r-1), cy-Math.cos(ta)*(r-1));
+    ctx.strokeStyle = isCard ? 'rgba(212,160,23,0.75)' : 'rgba(255,255,255,0.22)';
+    ctx.lineWidth = isCard ? 1.5 : 1;
+    ctx.stroke();
+  }
+
+  // ── Cardinal letters — N = throw direction (+Z = forward in game) ──
+  // N is at top (angle=0), E right, S bottom, W left
+  var cardinals = [
+    {lbl:'N', a:0,      col:'#ff4444', note:'זריקה'},
+    {lbl:'E', a:Math.PI/2,   col:'rgba(212,160,23,0.85)', note:''},
+    {lbl:'S', a:Math.PI,     col:'rgba(180,180,180,0.7)', note:''},
+    {lbl:'W', a:-Math.PI/2,  col:'rgba(212,160,23,0.85)', note:''}
+  ];
+  ctx.font = 'bold 8px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  cardinals.forEach(function(c) {
+    var lx = cx + Math.sin(c.a)*(r-12);
+    var ly = cy - Math.cos(c.a)*(r-12);
+    ctx.fillStyle = c.col;
+    ctx.fillText(c.lbl, lx, ly);
+  });
+
+  // ── Centre dot ────────────────────────────────────────────────
+  ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2);
+  ctx.fillStyle='rgba(212,160,23,0.9)'; ctx.fill();
+
+  // ── Wind needle ───────────────────────────────────────────────
+  // wind.angle: direction wind blows TOWARD in game coords (+Z=N, +X=E)
+  // Map to canvas: N=up, E=right  => canvas angle = wind.angle (sin=x, -cos=y)
+  var ang = wind.angle;
+  var str = Math.min(1, wind.speed / 1.5);
+  var needleLen = 9 + str * 11;
+
+  // Tail (into-wind side) — grey
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx - Math.sin(ang)*(needleLen*0.7), cy + Math.cos(ang)*(needleLen*0.7));
+  ctx.strokeStyle='rgba(130,150,180,0.5)'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Head needle — colour by strength
+  var needleCol = str < 0.35 ? '#44ddaa' : str < 0.7 ? '#f1c40f' : '#ff5533';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.sin(ang)*needleLen, cy - Math.cos(ang)*needleLen);
+  ctx.strokeStyle=needleCol; ctx.lineWidth=3; ctx.stroke();
+  ctx.restore();
+
+  // Arrowhead
+  var hx = cx + Math.sin(ang)*needleLen;
+  var hy = cy - Math.cos(ang)*needleLen;
+  var perp = ang + Math.PI/2;
+  ctx.beginPath();
+  ctx.moveTo(hx + Math.sin(ang)*5.5,    hy - Math.cos(ang)*5.5);
+  ctx.lineTo(hx + Math.sin(perp)*3,     hy - Math.cos(perp)*3);
+  ctx.lineTo(hx - Math.sin(perp)*3,     hy + Math.cos(perp)*3);
+  ctx.closePath(); ctx.fillStyle=needleCol; ctx.fill();
+
+  // ── Strength bar + speed ──────────────────────────────────────
+  var barW=32, barH=3, bx=cx-barW/2, by=H-8;
+  ctx.beginPath(); ctx.roundRect(bx,by,barW,barH,1.5);
+  ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fill();
+  if (str > 0) {
+    var barG=ctx.createLinearGradient(bx,0,bx+barW,0);
+    barG.addColorStop(0,'#44ddaa'); barG.addColorStop(0.5,'#f1c40f'); barG.addColorStop(1,'#ff5533');
+    ctx.beginPath(); ctx.roundRect(bx,by,barW*str,barH,1.5);
+    ctx.fillStyle=barG; ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.font='6px Arial'; ctx.textAlign='center';
+  ctx.fillText(wind.speed.toFixed(1)+' m/s', cx, by-4);
+}
+
+// ── Dog spin after air catch ───────────────────────────────────────
+function updateDogSpin(dt) {
+  if (dogSpinTimer <= 0) return;
+  dogSpinTimer -= dt;
+  // Fast Y rotation during spin
+  dogRoot.rotation.y += dt * Math.PI * 8;
+  if (dogSpinTimer <= 0) {
+    dogSpinTimer = 0;
+    dogRoot.rotation.y = G.dogRot;
+  }
+}
+
+// ── Land marks — scrape where disc hits ground ─────────────────────
+var _landMarkMat = null;
+function spawnLandMark(x, z) {
+  if (!_landMarkMat) {
+    var c = document.createElement('canvas'); c.width=32; c.height=32;
+    var ctx = c.getContext('2d');
+    // Elliptical scrape mark
+    var g = ctx.createRadialGradient(16,16,1,16,16,14);
+    g.addColorStop(0, 'rgba(30,50,20,0.7)');
+    g.addColorStop(0.4, 'rgba(20,40,15,0.4)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle=g;
+    ctx.save(); ctx.translate(16,16); ctx.scale(1, 0.45); ctx.translate(-16,-16);
+    ctx.fillRect(0,0,32,32);
+    ctx.restore();
+    _landMarkMat = new THREE.MeshBasicMaterial({
+      map: new THREE.CanvasTexture(c), transparent:true, depthWrite:false, opacity:0.7
+    });
+  }
+  var mat = _landMarkMat.clone();
+  mat.opacity = 0.7;
+  var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.55), mat);
+  mesh.rotation.x = -Math.PI/2;
+  mesh.rotation.z = Math.random() * Math.PI;
+  mesh.position.set(x, 0.013, z);
+  scene.add(mesh);
+  landMarks.push({ mesh:mesh, life:1.0 });
+}
+
+function updateLandMarks(dt) {
+  for (var i=landMarks.length-1; i>=0; i--) {
+    landMarks[i].life -= dt * 0.12;  // ~8 seconds to fade
+    if (landMarks[i].life <= 0) {
+      scene.remove(landMarks[i].mesh);
+      landMarks[i].mesh.material.dispose();
+      landMarks.splice(i,1);
+    } else {
+      landMarks[i].mesh.material.opacity = landMarks[i].life * 0.7;
+    }
+  }
+}
+
+function updateFrisbeeLogic() {
+  var distOwner = dogRoot.position.distanceTo(ownerMesh.position);
+  var throwBtn  = document.getElementById('btn-throw');
+  var statusEl  = document.getElementById('status-msg');
+
+  if (G.flying) {
+    frisbeeGroup.position.add(G.fVel);
+    // Gentle drift curve — dampen over time so it doesn't go wild
+    G.fVel.x += G.fDrift.x + Math.sin(wind.angle) * wind.speed * 0.0008;
+    G.fVel.z += G.fDrift.z + Math.cos(wind.angle) * wind.speed * 0.0008;
+    G.fDrift.x *= 0.92;   // drift fades out, preventing runaway accumulation
+    G.fDrift.z *= 0.92;
+    frisbeeGroup.rotation.y += .3;
+    // Tilt disc in direction of drift
+    frisbeeGroup.rotation.z = G.fDrift.x * 400;
+    frisbeeGroup.rotation.x = -G.fDrift.z * 400;
+    G.fVel.y -= .0028;
+    var catchPos = dogRoot.position.clone();
+    catchPos.y += dogModel.position.y+.55;
+    if (catchPos.distanceTo(frisbeeGroup.position) < PHYS.catchR) { catchFrisbee(); return; }
+    if (frisbeeGroup.position.y <= .06) {
+      frisbeeGroup.position.y=.06;
+      G.flying=false; G.onGround=true;
+      spawnLandMark(frisbeeGroup.position.x, frisbeeGroup.position.z);
+      var sp=worldToScreen(frisbeeGroup.position); spawnParticles(sp.x,sp.y,'#88cc66',18);
+      showAnnounce('פספוס! 😬','#ff6677');
+    }
+  }
+
+  if (G.onGround && !G.hasDisk) {
+    if (dogRoot.position.distanceTo(frisbeeGroup.position) < PHYS.pickR) {
+      G.hasDisk=true; G.onGround=false;
+      showAnnounce('אספת! 🐾','#44dd88');
+    }
+  }
+
+  if (G.hasDisk) {
+    // Frisbee carried in dog's mouth — slightly in front and above snout
+    var fh = (G.dogType==='momo'?.55:1.05) + dogModel.position.y;
+    var mouthOffset = 0.55;  // in front of dog
+    var mouthX = dogRoot.position.x + Math.sin(G.dogRot) * mouthOffset;
+    var mouthZ = dogRoot.position.z + Math.cos(G.dogRot) * mouthOffset;
+    frisbeeGroup.position.set(mouthX, fh, mouthZ);
+    frisbeeGroup.rotation.y = G.dogRot + animT*2;
+    frisbeeGroup.rotation.x = 0.3;  // slight tilt like carried in mouth
+    if (distOwner < PHYS.returnR) {
+      G.hasDisk=false;
+      // Snap frisbee to owner's hand
+      _placeDiscInOwnerHand();
+      playReturn();
+      showAnnounce('כלב טוב! 🎉','#f1c40f');
+      var sp2=worldToScreen(ownerMesh.position);
+      spawnParticles(sp2.x,sp2.y,'#f1c40f',22); spawnParticles(sp2.x,sp2.y,'#ffffff',8);
+    }
+  }
+
+  if (!G.flying && !G.hasDisk && !G.onGround) {
+    _placeDiscInOwnerHand();
+    if (distOwner >= PHYS.minDist) {
+      G.canThrow=true; throwBtn.classList.add('ready');
+      statusEl.textContent='מוכן לזריקה! (SPACE)'; statusEl.classList.add('visible');
+    } else {
+      G.canThrow=false; throwBtn.classList.remove('ready');
+      var needed = Math.ceil(PHYS.minDist - distOwner);
+      statusEl.textContent='רוץ עוד ' + needed + 'מ מהבעלים...'; statusEl.classList.add('visible');
+    }
+  } else {
+    G.canThrow=false; throwBtn.classList.remove('ready');
+    statusEl.classList.toggle('visible', G.onGround);
+    if (G.onGround) statusEl.textContent='רוץ לאסוף! 🐾';
+  }
+}
+
+function catchFrisbee() {
+  G.hasDisk=true; G.flying=false;
+  // BUG FIX: stop jump physics on catch so dog doesn't float
+  G.jumping=false;
+  playPop();
+  var isAir = dogModel.position.y>.4;
+  if (navigator.vibrate) navigator.vibrate(isAir ? [30,10,30] : 25);
+  if (isAir) dogSpinTimer = 0.65;  // spin for 0.65 seconds
+
+  // ── AIR CATCH: enhanced camera snap + dog leap visual ──────────
+  if (isAir) {
+    G.airCatchAnim = 1.0;   // runs for 1 second
+    G.vVel = 0.18;          // extra boost upward on catch
+    // Camera dramatic pull-back + tilt (temporary)
+    _camAirCatchOverride = true;
+    setTimeout(function(){ _camAirCatchOverride = false; }, 900);
+  }
+
+  var pts=0;
+  ZONES.forEach(function(z){ if(frisbeeGroup.position.z>=z.z) pts=z.pts; });
+  var total = pts+(isAir?.5:0);
+  G.score = Math.round((G.score+total)*10)/10;
+  document.getElementById('score-val').textContent = G.score;
+  updateScoreboardTexture(G.score, G.timeLeft);
+
+  // ── Floating 3D score popup (feature #12) ─────────────────────
+  showFloat3DScore('+'+total, isAir ? '#f1c40f' : '#aaddff', isAir);
+
+  // Crowd cheer + owner celebration
+  var bigCatch = isAir || pts >= 3;
+  playCrowdCheer(bigCatch);
+  G._crowdCheering = true;
+  G._ownerCelebrating = true;
+  if (crowdCheerTimeout) clearTimeout(crowdCheerTimeout);
+  crowdCheerTimeout = setTimeout(function(){
+    G._crowdCheering = false;
+    G._ownerCelebrating = false;
+  }, bigCatch ? 1800 : 900);
+
+  var sp = worldToScreen(frisbeeGroup.position);
+  spawnParticles(sp.x,sp.y, isAir?'#f1c40f':'#88ccff', isAir?36:22);
+  if (isAir) spawnParticles(sp.x,sp.y,'#ffffff',10);
+
+  var flash=document.getElementById('score-flash');
+  flash.textContent='+'+total; flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
+  showAnnounce(isAir?'✨ AIR CATCH! +'+total:'🎯 CATCH! +'+total, isAir?'#f1c40f':'#aaddff');
+}
+
+// ── Camera override flag for air catch dramatic shot ──────────────
+// (declared earlier near loop variables)
+
+// ── Floating 3D score text over dog (feature #12) ─────────────────
+function showFloat3DScore(text, color, big) {
+  var el = document.getElementById('floatScore');
+  if (!el) return;
+  // Project dog world position to screen
+  var sp = worldToScreen(dogRoot.position);
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = sp.x + 'px';
+  el.style.top  = (sp.y - 60) + 'px';
+  el.style.fontSize = big ? '42px' : '30px';
+  el.style.textShadow = '0 0 24px ' + color + ', 0 2px 10px rgba(0,0,0,0.9)';
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+// ── Update air catch animation ─────────────────────────────────────
+function updateAirCatchAnim(dt) {
+  if (G.airCatchAnim <= 0) {
+    if (G.airCatchScale !== 1) {
+      G.airCatchScale += (1 - G.airCatchScale) * 0.15;
+      if (dogModel) dogModel.scale.setScalar(Math.max(0.98, G.airCatchScale));
+    }
+    return;
+  }
+  G.airCatchAnim -= dt;
+  var t = Math.max(0, G.airCatchAnim);
+  // Pop scale: quick scale-up then settle
+  var progress = 1 - t;  // 0→1 over animation duration
+  var scalePop = 1 + Math.sin(progress * Math.PI) * 0.32;
+  G.airCatchScale = scalePop;
+  if (dogModel) dogModel.scale.setScalar(scalePop);
+}
+
+
+function resetWorld() {
+  dogRoot.position.set(0,0,0); dogRoot.rotation.set(0,0,0);
+  G.dogRot=0; G.velZ=0; G.vVel=0; G.jumping=false;
+  G.airCatchAnim=0; G.airCatchScale=1;
+  dogSpinTimer=0;
+  _camAirCatchOverride = false;
+  // Reset dog model visual state
+  if (dogModel) { dogModel.position.y=0; dogModel.scale.setScalar(1); }
+  frisbeeGroup.position.set(0,.05,-3); frisbeeGroup.rotation.set(0,0,0);
+  setTimeout(_placeDiscInOwnerHand, 150);
+  // Clear paw prints
+  pawPrints.forEach(function(p){ scene.remove(p.mesh); p.mesh.material.dispose(); });
+  pawPrints = [];
+  landMarks.forEach(function(m){ scene.remove(m.mesh); m.mesh.material.dispose(); });
+  landMarks = [];
+  buildDog();
+  buildDogShadow();
+  buildDiscShadow();
+  buildDirectionArrow();  // BUG FIX: rebuild arrow on restart
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  pfxCanvas.width=window.innerWidth; pfxCanvas.height=window.innerHeight;
+}
+</script>
+</body>
+</html>
