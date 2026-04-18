@@ -82,6 +82,46 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 #floatScore{position:fixed;pointer-events:none;z-index:60;font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;text-shadow:0 2px 12px rgba(0,0,0,0.9);white-space:nowrap;opacity:0;}
 #floatScore.pop{animation:floatScorePop 1.6s ease-out forwards;}
 @keyframes floatScorePop{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4);}30%{opacity:1;transform:translate(-50%,-80%) scale(1.1);}100%{opacity:0;transform:translate(-50%,-140%) scale(0.85);}}
+
+/* ── ROTATE OVERLAY ─────────────────────────────────────────────────────── */
+#rotate-overlay{position:fixed;inset:0;z-index:9999;background:rgba(5,8,16,0.97);display:none;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;}
+#rotate-overlay.show{display:flex;}
+#rotate-phone-icon{font-size:72px;display:inline-block;animation:rotatePulse 2.4s ease-in-out infinite;}
+@keyframes rotatePulse{0%,100%{transform:rotate(0deg);}40%,60%{transform:rotate(90deg);}}
+#rotate-overlay .rot-title{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;letter-spacing:5px;color:#d4a017;margin:14px 0 6px;}
+#rotate-overlay .rot-sub{font-size:13px;color:rgba(255,255,255,0.42);letter-spacing:1px;line-height:1.6;margin-bottom:22px;}
+#rotate-dismiss{font-size:11px;color:rgba(255,255,255,0.25);cursor:pointer;letter-spacing:1px;text-decoration:underline;padding:8px 16px;}
+
+/* ── COLUMN WRAPPERS — portrait: transparent, landscape: flex columns ───── */
+#start-col-left,#start-col-right,#go-col-left,#go-col-right{display:contents;}
+
+/* ── LANDSCAPE MOBILE ───────────────────────────────────────────────────── */
+@media (orientation:landscape) and (max-height:520px){
+  .modal{overflow-y:auto;justify-content:flex-start;padding:6px 0;}
+  .modal h2{font-size:24px;margin-bottom:0;}
+  .modal .subtitle{font-size:9px;letter-spacing:4px;margin-bottom:3px;}
+  .gold-line{margin:4px 0;width:90px;}
+  .business-badge{padding:4px 18px;margin-bottom:6px;}
+  .business-name{font-size:16px;letter-spacing:5px;}
+  .owner-info{font-size:9px;margin-top:2px;}
+  .char-grid{gap:6px;margin-bottom:6px;}
+  .char-card{width:76px;padding:8px 6px;}
+  .char-icon{font-size:26px;margin-bottom:3px;}
+  .char-name{font-size:12px;}
+  .char-desc{font-size:9px;}
+  .btn{padding:8px 24px;font-size:13px;letter-spacing:3px;margin:4px;}
+  .desktop-hint{font-size:10px;margin-top:6px;}
+  #start-screen{flex-direction:row;align-items:center;gap:20px;padding:8px 28px;justify-content:center;}
+  #start-col-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  #start-col-right{display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:220px;}
+  #game-over-screen{flex-direction:row;align-items:flex-start;gap:18px;padding:10px 28px;justify-content:center;}
+  #go-col-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  #go-col-right{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:10px;}
+  #leaderboard{max-height:200px;margin-top:0;width:210px;max-width:210px;}
+  input{width:170px;padding:7px 12px;font-size:13px;letter-spacing:2px;margin-bottom:6px;}
+  #difficulty-grid > div{padding:7px 12px!important;min-width:72px!important;}
+  #difficulty-grid{gap:6px;margin-bottom:10px;}
+}
 </style>
 </head>
 <body>
@@ -90,8 +130,17 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 <div id="vignette"></div>
 <canvas id="pfx"></canvas>
 
+<!-- ROTATE OVERLAY -->
+<div id="rotate-overlay">
+  <div id="rotate-phone-icon">&#128241;</div>
+  <div class="rot-title">&#1505;&#1493;&#1489;&#1489; &#1488;&#1514; &#1492;&#1496;&#1500;&#1508;&#1493;&#1503;</div>
+  <div class="rot-sub">&#1492;&#1502;&#1513;&#1495;&#1511; &#1506;&#1493;&#1489;&#1491; &#1492;&#1499;&#1497; &#1496;&#1493;&#1489; &#1489;&#1502;&#1510;&#1489; &#1500;&#1512;&#1493;&#1495;&#1489;<br>&#1500;&#1495;&#1493;&#1493;&#1497;&#1493;&#1514; &#1513;&#1500;&#1502;&#1493;&#1514; &#1500;&#1511;&#1493;&#1488; &#1513;&#1500;&#1498;</div>
+  <div id="rotate-dismiss" onclick="dismissRotate()">&#1492;&#1502;&#1513;&#1498; &#1489;&#1499;&#1500; &#1494;&#1488;&#1514;</div>
+</div>
+
 <!-- START -->
 <div id="start-screen" class="modal active">
+  <div id="start-col-left">
   <h2>פריזבי כלבני</h2>
   <div class="subtitle">USDDN CHAMPIONSHIP SERIES</div>
   <div class="gold-line"></div>
@@ -114,6 +163,8 @@ input::placeholder{color:rgba(255,255,255,0.28);}
       <div class="char-desc">Chihuahua<br>שובבה</div>
     </div>
   </div>
+  </div>
+  <div id="start-col-right">
   <p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:10px;letter-spacing:1px;">רמת קושי</p>
   <div id="difficulty-grid" style="display:flex;gap:10px;margin-bottom:22px;justify-content:center;">
     <div class="diff-card" id="diff-easy" onclick="selectDifficulty('easy')" style="background:rgba(26,90,42,0.18);border:1px solid rgba(46,200,80,0.35);border-radius:4px;padding:12px 18px;text-align:center;cursor:pointer;transition:all 0.22s;min-width:88px;position:relative;overflow:hidden;">
@@ -134,6 +185,7 @@ input::placeholder{color:rgba(255,255,255,0.28);}
   </div>
   <button class="btn" onclick="startGame()">התחל</button>
   <div class="desktop-hint">WASD / חצים · SPACE לזריקה</div>
+  </div><!-- end start-col-right -->
 </div>
 
 <!-- SOUND CONTROLS — fixed top-left, visible on start screen only -->
@@ -144,12 +196,16 @@ input::placeholder{color:rgba(255,255,255,0.28);}
   <div id="sfx-btn" onclick="toggleSFX()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
     <span>🔊</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">צלילים</span>
   </div>
+  <div id="fs-btn-start" onclick="toggleFullscreen()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
+    <span id="fs-icon-start">⛶</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">מסך מלא</span>
+  </div>
 </div>
 
 <!-- GAME UI -->
 <div id="top-bar">
   <div style="display:flex;gap:6px;pointer-events:auto;">
     <div id="pause-btn" onclick="togglePause()">⏸</div>
+    <div id="fs-btn-game" onclick="toggleFullscreen()" style="width:44px;height:44px;border-radius:3px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.13);color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" title="מסך מלא"><span id="fs-icon-game">⛶</span></div>
   </div>
   <div class="hud-panel"><div class="hud-label">ניקוד</div><div class="hud-value" id="score-val">0</div></div>
   <div class="hud-panel"><div class="hud-label">זמן</div><div class="hud-value" id="timer-val">90</div></div>
@@ -190,6 +246,7 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 
 <!-- GAME OVER -->
 <div id="game-over-screen" class="modal">
+  <div id="go-col-left">
   <h2>תוצאה סופית</h2><div class="subtitle">END OF ROUND</div><div class="gold-line"></div>
   <p style="font-size:16px;color:rgba(255,255,255,0.6);margin-bottom:4px;">
     <span id="final-dog-name" style="color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px;"></span>
@@ -202,7 +259,10 @@ input::placeholder{color:rgba(255,255,255,0.28);}
     <div class="business-name">CoolDog</div>
     <div class="owner-info">ניב פינטו &nbsp;|&nbsp; 052-3060902</div>
   </div>
+  </div><!-- end go-col-left -->
+  <div id="go-col-right">
   <div id="leaderboard"><div style="text-align:center;color:rgba(255,255,255,0.3);font-size:13px;">טוען...</div></div>
+  </div><!-- end go-col-right -->
 </div>
 
 <!-- ═══ ALL GAME LOGIC — plain JS, NO module, all functions global ═══ -->
@@ -218,6 +278,46 @@ function _initFirebase() {
   } catch(e) {}
 }
 _initFirebase();
+
+// ─── FULLSCREEN ────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    var el = document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if (fn) fn.call(el);
+  } else {
+    var fn2 = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+    if (fn2) fn2.call(document);
+  }
+}
+function _updateFsIcons(isFs) {
+  var icon = isFs ? "×" : "⛶";
+  var e1 = document.getElementById("fs-icon-start");
+  var e2 = document.getElementById("fs-icon-game");
+  if (e1) e1.textContent = icon;
+  if (e2) e2.textContent = icon;
+}
+document.addEventListener("fullscreenchange", function() { _updateFsIcons(!!document.fullscreenElement); });
+document.addEventListener("webkitfullscreenchange", function() { _updateFsIcons(!!document.fullscreenElement); });
+
+// ─── ROTATE OVERLAY ───────────────────────────────────────────────────────
+var _rotateOverlayDismissed = false;
+var _gameIsActive = false;
+function dismissRotate() {
+  _rotateOverlayDismissed = true;
+  document.getElementById("rotate-overlay").classList.remove("show");
+}
+function _checkRotate() {
+  if (_gameIsActive) { document.getElementById("rotate-overlay").classList.remove("show"); return; }
+  var isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+  var isPortrait = window.innerHeight > window.innerWidth;
+  var shouldShow = isTouch && isPortrait && !_rotateOverlayDismissed;
+  document.getElementById("rotate-overlay").classList.toggle("show", shouldShow);
+}
+window.addEventListener("resize", _checkRotate);
+window.addEventListener("orientationchange", function(){ setTimeout(_checkRotate, 200); });
+document.addEventListener("DOMContentLoaded", _checkRotate);
+setTimeout(_checkRotate, 300);
 
 // Firebase loaded separately via module script below — exposes _fbSave/_fbLoad
 </script>
@@ -586,6 +686,7 @@ function selectDog(t) {
 }
 
 function startGame() {
+  _gameIsActive = true; _rotateOverlayDismissed = false; _checkRotate();
   var diff = DIFFICULTY_PRESETS[G_DIFFICULTY] || DIFFICULTY_PRESETS.medium;
   PHYS.totalTime = diff.totalTime;
 
@@ -742,6 +843,7 @@ function endGame() {
   var names = {zippo:'זיפו', colin:'קולין', momo:'מומו'};
   document.getElementById('final-dog-name').textContent = names[G.dogType] || G.dogType;
   document.getElementById('game-over-screen').classList.add('active');
+  _gameIsActive = false; _rotateOverlayDismissed = false; setTimeout(_checkRotate, 300);
   loadLeaderboard();
 }
 
