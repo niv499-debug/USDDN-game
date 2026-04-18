@@ -46,81 +46,69 @@ canvas#c{display:block;position:fixed;inset:0;width:100%!important;height:100%!i
 #score-flash.show{animation:sfRise 1.2s ease-out forwards;}
 @keyframes sfRise{0%{opacity:1;transform:translateY(0) scale(1.35);}100%{opacity:0;transform:translateY(-72px) scale(0.9);}}
 
-.modal{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,rgba(3,6,14,0.98),rgba(7,14,30,0.97));display:none;flex-direction:column;align-items:center;justify-content:center;color:white;}
+.modal{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,rgba(3,6,14,0.98),rgba(7,14,30,0.97));display:none;flex-direction:column;align-items:center;justify-content:center;color:white;overflow-y:auto;padding:clamp(8px,2vh,20px) 0;}
 .modal.active{display:flex;}
 .modal::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 65% 40% at 50% 0%,rgba(212,160,23,0.09) 0%,transparent 65%),radial-gradient(ellipse 40% 25% at 20% 100%,rgba(41,128,185,0.07) 0%,transparent 55%);}
-.gold-line{width:160px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px 0;}
-.modal h2{font-family:'Oswald',sans-serif;font-size:42px;font-weight:700;letter-spacing:7px;text-transform:uppercase;color:var(--gold);margin-bottom:2px;text-align:center;text-shadow:0 0 45px var(--gold-glow);}
-.modal .subtitle{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:6px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:18px;}
-.business-badge{text-align:center;padding:12px 32px;margin-bottom:22px;border-top:1px solid rgba(212,160,23,0.18);border-bottom:1px solid rgba(212,160,23,0.18);}
-.business-name{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;letter-spacing:9px;color:#fff;text-transform:uppercase;}
-.owner-info{font-size:13px;color:var(--gold);margin-top:4px;opacity:0.85;}
-.char-grid{display:flex;gap:13px;margin-bottom:26px;flex-wrap:wrap;justify-content:center;}
-.char-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.22s;width:108px;position:relative;overflow:hidden;}
-.char-card:hover,.char-card.selected{border-color:rgba(212,160,23,0.55);background:rgba(212,160,23,0.07);transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 22px rgba(212,160,23,0.18);}
+.gold-line{width:clamp(90px,35vw,160px);height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:clamp(6px,1.5vh,14px) 0;}
+.modal h2{font-family:'Oswald',sans-serif;font-size:clamp(24px,6vw,42px);font-weight:700;letter-spacing:clamp(3px,1.5vw,7px);text-transform:uppercase;color:var(--gold);margin-bottom:2px;text-align:center;text-shadow:0 0 45px var(--gold-glow);}
+.modal .subtitle{font-family:'Oswald',sans-serif;font-size:clamp(9px,2.5vw,12px);letter-spacing:clamp(3px,1.5vw,6px);color:rgba(255,255,255,0.35);text-align:center;margin-bottom:clamp(8px,2vh,18px);}
+.business-badge{text-align:center;padding:clamp(5px,1.2vh,12px) clamp(14px,4vw,32px);margin-bottom:clamp(10px,2.2vh,22px);border-top:1px solid rgba(212,160,23,0.18);border-bottom:1px solid rgba(212,160,23,0.18);}
+.business-name{font-family:'Oswald',sans-serif;font-size:clamp(15px,4vw,26px);font-weight:700;letter-spacing:clamp(4px,2vw,9px);color:#fff;text-transform:uppercase;}
+.owner-info{font-size:clamp(10px,2.5vw,13px);color:var(--gold);margin-top:4px;opacity:0.85;}
+.char-grid{display:flex;gap:clamp(7px,2vw,13px);margin-bottom:clamp(12px,2.5vh,26px);flex-wrap:wrap;justify-content:center;}
+.char-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:clamp(8px,2vw,18px) clamp(7px,1.8vw,14px);text-align:center;cursor:pointer;transition:all 0.22s;width:clamp(78px,20vw,108px);position:relative;overflow:hidden;}
+.char-card:hover,.char-card.selected{border-color:rgba(212,160,23,0.55);background:rgba(212,160,23,0.07);transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 22px rgba(212,160,23,0.18);}
 .char-card.selected::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.char-icon{font-size:46px;margin-bottom:7px;}
-.char-name{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
-.char-desc{font-size:11px;color:rgba(255,255,255,0.42);margin-top:5px;line-height:1.4;}
-.btn{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:5px;text-transform:uppercase;background:linear-gradient(135deg,#1a5a2a,#0d3a1a);color:var(--gold);border:1px solid rgba(212,160,23,0.42);padding:14px 50px;border-radius:2px;cursor:pointer;margin:8px;box-shadow:0 4px 22px rgba(0,0,0,0.55);transition:all 0.2s;}
+.char-icon{font-size:clamp(28px,7vw,46px);margin-bottom:clamp(3px,0.8vh,7px);}
+.char-name{font-family:'Oswald',sans-serif;font-size:clamp(12px,3.5vw,18px);font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.char-desc{font-size:clamp(9px,2.2vw,11px);color:rgba(255,255,255,0.42);margin-top:clamp(2px,0.5vh,5px);line-height:1.4;}
+.btn{font-family:'Oswald',sans-serif;font-size:clamp(13px,3.5vw,18px);font-weight:700;letter-spacing:clamp(2px,1.2vw,5px);text-transform:uppercase;background:linear-gradient(135deg,#1a5a2a,#0d3a1a);color:var(--gold);border:1px solid rgba(212,160,23,0.42);padding:clamp(9px,2vw,14px) clamp(22px,5vw,50px);border-radius:2px;cursor:pointer;margin:clamp(4px,1vh,8px);box-shadow:0 4px 22px rgba(0,0,0,0.55);transition:all 0.2s;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.65),0 0 22px rgba(212,160,23,0.22);}
 .btn:active{transform:scale(0.97);}
 .btn-ghost{background:transparent;border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.55);}
-#leaderboard{width:84%;max-width:440px;background:rgba(0,0,0,0.42);border:1px solid rgba(212,160,23,0.18);border-radius:2px;padding:16px;margin-top:14px;max-height:165px;overflow-y:auto;}
-#leaderboard h3{font-family:'Oswald',sans-serif;letter-spacing:4px;font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;text-transform:uppercase;}
-.score-entry{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:14px;}
-input{font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:3px;padding:12px 22px;border-radius:2px;text-align:center;margin-bottom:14px;width:240px;background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(212,160,23,0.3);outline:none;transition:border-color 0.2s;}
+#leaderboard{width:84%;max-width:440px;background:rgba(0,0,0,0.42);border:1px solid rgba(212,160,23,0.18);border-radius:2px;padding:clamp(8px,2vw,16px);margin-top:clamp(6px,1.5vh,14px);max-height:clamp(110px,28vh,165px);overflow-y:auto;}
+#leaderboard h3{font-family:'Oswald',sans-serif;letter-spacing:4px;font-size:clamp(10px,2.5vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(6px,1.5vh,12px);text-transform:uppercase;}
+.score-entry{display:flex;justify-content:space-between;padding:clamp(5px,1.2vh,9px) 4px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:clamp(11px,2.8vw,14px);}
+input{font-family:'Oswald',sans-serif;font-size:clamp(12px,3.5vw,17px);letter-spacing:clamp(1px,0.8vw,3px);padding:clamp(7px,1.5vw,12px) clamp(10px,2.5vw,22px);border-radius:2px;text-align:center;margin-bottom:clamp(8px,1.8vh,14px);width:clamp(180px,55vw,240px);background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(212,160,23,0.3);outline:none;transition:border-color 0.2s;}
 input:focus{border-color:var(--gold);}
 input::placeholder{color:rgba(255,255,255,0.28);}
-.desktop-hint{font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.22);margin-top:12px;}
+.desktop-hint{font-size:clamp(9px,2.2vw,12px);letter-spacing:1px;color:rgba(255,255,255,0.22);margin-top:clamp(6px,1.5vh,12px);}
 .diff-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
 .diff-card.selected{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
 #diff-medium.selected{border-color:rgba(212,160,23,0.85);background:rgba(212,160,23,0.15);}
 #diff-easy.selected{border-color:rgba(46,200,80,0.85);background:rgba(26,90,42,0.3);}
 #diff-hard.selected{border-color:rgba(220,60,60,0.85);background:rgba(180,30,30,0.25);}
 /* 3D floating score text */
-#floatScore{position:fixed;pointer-events:none;z-index:60;font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;text-shadow:0 2px 12px rgba(0,0,0,0.9);white-space:nowrap;opacity:0;}
+#floatScore{position:fixed;pointer-events:none;z-index:60;font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(20px,5vw,32px);text-shadow:0 2px 12px rgba(0,0,0,0.9);white-space:nowrap;opacity:0;}
 #floatScore.pop{animation:floatScorePop 1.6s ease-out forwards;}
 @keyframes floatScorePop{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4);}30%{opacity:1;transform:translate(-50%,-80%) scale(1.1);}100%{opacity:0;transform:translate(-50%,-140%) scale(0.85);}}
 
-/* ── ROTATE OVERLAY ─────────────────────────────────────────────────────── */
+/* ── ROTATE OVERLAY ──────────────────────────────────────────────────────── */
 #rotate-overlay{position:fixed;inset:0;z-index:9999;background:rgba(5,8,16,0.97);display:none;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;}
 #rotate-overlay.show{display:flex;}
 #rotate-phone-icon{font-size:72px;display:inline-block;animation:rotatePulse 2.4s ease-in-out infinite;}
 @keyframes rotatePulse{0%,100%{transform:rotate(0deg);}40%,60%{transform:rotate(90deg);}}
-#rotate-overlay .rot-title{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;letter-spacing:5px;color:#d4a017;margin:14px 0 6px;}
-#rotate-overlay .rot-sub{font-size:13px;color:rgba(255,255,255,0.42);letter-spacing:1px;line-height:1.6;margin-bottom:22px;}
+.rot-title{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;letter-spacing:5px;color:var(--gold);margin:14px 0 6px;}
+.rot-sub{font-size:13px;color:rgba(255,255,255,0.42);letter-spacing:1px;line-height:1.6;margin-bottom:22px;}
 #rotate-dismiss{font-size:11px;color:rgba(255,255,255,0.25);cursor:pointer;letter-spacing:1px;text-decoration:underline;padding:8px 16px;}
 
-/* ── COLUMN WRAPPERS — portrait: transparent, landscape: flex columns ───── */
+/* ── COLUMN WRAPPERS ─────────────────────────────────────────────────────── */
 #start-col-left,#start-col-right,#go-col-left,#go-col-right{display:contents;}
 
-/* ── LANDSCAPE MOBILE ───────────────────────────────────────────────────── */
+/* ── LANDSCAPE MOBILE ────────────────────────────────────────────────────── */
 @media (orientation:landscape) and (max-height:520px){
-  .modal{overflow-y:auto;justify-content:flex-start;padding:6px 0;}
-  .modal h2{font-size:24px;margin-bottom:0;}
-  .modal .subtitle{font-size:9px;letter-spacing:4px;margin-bottom:3px;}
-  .gold-line{margin:4px 0;width:90px;}
-  .business-badge{padding:4px 18px;margin-bottom:6px;}
-  .business-name{font-size:16px;letter-spacing:5px;}
-  .owner-info{font-size:9px;margin-top:2px;}
-  .char-grid{gap:6px;margin-bottom:6px;}
-  .char-card{width:76px;padding:8px 6px;}
-  .char-icon{font-size:26px;margin-bottom:3px;}
-  .char-name{font-size:12px;}
-  .char-desc{font-size:9px;}
-  .btn{padding:8px 24px;font-size:13px;letter-spacing:3px;margin:4px;}
-  .desktop-hint{font-size:10px;margin-top:6px;}
-  #start-screen{flex-direction:row;align-items:center;gap:20px;padding:8px 28px;justify-content:center;}
+  /* start screen — two columns */
+  #start-screen{flex-direction:row !important;gap:clamp(14px,3vw,28px);padding:6px 20px !important;align-items:center;justify-content:center;}
   #start-col-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
-  #start-col-right{display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:220px;}
-  #game-over-screen{flex-direction:row;align-items:flex-start;gap:18px;padding:10px 28px;justify-content:center;}
+  #start-col-right{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  /* game-over screen — two columns */
+  #game-over-screen{flex-direction:row !important;gap:clamp(12px,2.5vw,22px);padding:8px 20px !important;align-items:flex-start;justify-content:center;}
   #go-col-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
-  #go-col-right{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:10px;}
-  #leaderboard{max-height:200px;margin-top:0;width:210px;max-width:210px;}
-  input{width:170px;padding:7px 12px;font-size:13px;letter-spacing:2px;margin-bottom:6px;}
-  #difficulty-grid > div{padding:7px 12px!important;min-width:72px!important;}
-  #difficulty-grid{gap:6px;margin-bottom:10px;}
+  #go-col-right{display:flex;flex-direction:column;align-items:center;width:clamp(180px,30vw,220px);flex-shrink:0;}
+  #leaderboard{max-height:calc(100vh - 24px);margin-top:0;overflow-y:auto;}
+  /* difficulty inline */
+  #difficulty-grid>div{padding:5px 10px !important;min-width:64px !important;}
+  #difficulty-grid>div>div:first-child{font-size:16px !important;margin-bottom:2px;}
 }
 </style>
 </head>
@@ -132,10 +120,10 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 
 <!-- ROTATE OVERLAY -->
 <div id="rotate-overlay">
-  <div id="rotate-phone-icon">&#128241;</div>
-  <div class="rot-title">&#1505;&#1493;&#1489;&#1489; &#1488;&#1514; &#1492;&#1496;&#1500;&#1508;&#1493;&#1503;</div>
-  <div class="rot-sub">&#1492;&#1502;&#1513;&#1495;&#1511; &#1506;&#1493;&#1489;&#1491; &#1492;&#1499;&#1497; &#1496;&#1493;&#1489; &#1489;&#1502;&#1510;&#1489; &#1500;&#1512;&#1493;&#1495;&#1489;<br>&#1500;&#1495;&#1493;&#1493;&#1497;&#1493;&#1514; &#1513;&#1500;&#1502;&#1493;&#1514; &#1500;&#1511;&#1493;&#1488; &#1513;&#1500;&#1498;</div>
-  <div id="rotate-dismiss" onclick="dismissRotate()">&#1492;&#1502;&#1513;&#1498; &#1489;&#1499;&#1500; &#1494;&#1488;&#1514;</div>
+  <div id="rotate-phone-icon">📱</div>
+  <div class="rot-title">סובב את הטלפון</div>
+  <div class="rot-sub">המשחק עובד הכי טוב במצב לרוחב<br>לחוויה מלאה של שליטה וניצחון</div>
+  <div id="rotate-dismiss" onclick="dismissRotate()">המשך בכל זאת</div>
 </div>
 
 <!-- START -->
@@ -148,6 +136,8 @@ input::placeholder{color:rgba(255,255,255,0.28);}
     <div class="business-name">CoolDog</div>
     <div class="owner-info">ניב פינטו אילוף כלבים &nbsp;|&nbsp; 052-3060902</div>
   </div>
+  </div><!-- /start-col-left -->
+  <div id="start-col-right">
   <p style="font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:18px;letter-spacing:1px;">בחר מתחרה</p>
   <div class="char-grid">
     <div class="char-card" id="card-colin" onclick="selectDog('colin')">
@@ -163,8 +153,6 @@ input::placeholder{color:rgba(255,255,255,0.28);}
       <div class="char-desc">Chihuahua<br>שובבה</div>
     </div>
   </div>
-  </div>
-  <div id="start-col-right">
   <p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:10px;letter-spacing:1px;">רמת קושי</p>
   <div id="difficulty-grid" style="display:flex;gap:10px;margin-bottom:22px;justify-content:center;">
     <div class="diff-card" id="diff-easy" onclick="selectDifficulty('easy')" style="background:rgba(26,90,42,0.18);border:1px solid rgba(46,200,80,0.35);border-radius:4px;padding:12px 18px;text-align:center;cursor:pointer;transition:all 0.22s;min-width:88px;position:relative;overflow:hidden;">
@@ -185,7 +173,7 @@ input::placeholder{color:rgba(255,255,255,0.28);}
   </div>
   <button class="btn" onclick="startGame()">התחל</button>
   <div class="desktop-hint">WASD / חצים · SPACE לזריקה</div>
-  </div><!-- end start-col-right -->
+  </div><!-- /start-col-right -->
 </div>
 
 <!-- SOUND CONTROLS — fixed top-left, visible on start screen only -->
@@ -196,8 +184,8 @@ input::placeholder{color:rgba(255,255,255,0.28);}
   <div id="sfx-btn" onclick="toggleSFX()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
     <span>🔊</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">צלילים</span>
   </div>
-  <div id="fs-btn-start" onclick="toggleFullscreen()" style="width:48px;height:48px;border-radius:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(212,160,23,0.35);color:white;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);">
-    <span id="fs-icon-start">⛶</span><span style="font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.5);">מסך מלא</span>
+  <div id="fs-btn-start" onclick="toggleFullscreen()" style="width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,rgba(0,0,0,0.85),rgba(8,14,28,0.85));border:1px solid rgba(212,160,23,0.55);color:var(--gold);font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;backdrop-filter:blur(10px);box-shadow:0 0 12px rgba(212,160,23,0.2);">
+    <span id="fs-icon-start">⛶</span><span style="font-size:8px;letter-spacing:1px;color:rgba(212,160,23,0.7);">מסך מלא</span>
   </div>
 </div>
 
@@ -205,7 +193,7 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 <div id="top-bar">
   <div style="display:flex;gap:6px;pointer-events:auto;">
     <div id="pause-btn" onclick="togglePause()">⏸</div>
-    <div id="fs-btn-game" onclick="toggleFullscreen()" style="width:44px;height:44px;border-radius:3px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.13);color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" title="מסך מלא"><span id="fs-icon-game">⛶</span></div>
+    <div id="fs-btn-game" onclick="toggleFullscreen()" style="width:50px;height:50px;border-radius:6px;background:linear-gradient(135deg,rgba(0,0,0,0.85),rgba(8,14,28,0.85));border:1px solid rgba(212,160,23,0.55);color:var(--gold);font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all 0.2s;box-shadow:0 0 12px rgba(212,160,23,0.2);" title="מסך מלא"><span id="fs-icon-game">⛶</span><span style="font-size:7px;letter-spacing:1px;color:rgba(212,160,23,0.7);">מסך</span></div>
   </div>
   <div class="hud-panel"><div class="hud-label">ניקוד</div><div class="hud-value" id="score-val">0</div></div>
   <div class="hud-panel"><div class="hud-label">זמן</div><div class="hud-value" id="timer-val">90</div></div>
@@ -248,21 +236,21 @@ input::placeholder{color:rgba(255,255,255,0.28);}
 <div id="game-over-screen" class="modal">
   <div id="go-col-left">
   <h2>תוצאה סופית</h2><div class="subtitle">END OF ROUND</div><div class="gold-line"></div>
-  <p style="font-size:16px;color:rgba(255,255,255,0.6);margin-bottom:4px;">
+  <p style="font-size:clamp(12px,3.5vw,16px);color:rgba(255,255,255,0.6);margin-bottom:4px;">
     <span id="final-dog-name" style="color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px;"></span>
     &nbsp;|&nbsp; ניקוד: <span id="final-score" style="color:#fff;font-size:1.35em;font-weight:700;"></span>
   </p>
-  <p id="best-score-line" style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:12px;min-height:20px;"></p>
+  <p id="best-score-line" style="font-size:clamp(11px,3vw,14px);color:rgba(255,255,255,0.5);margin-bottom:12px;min-height:20px;"></p>
   <input type="text" id="player-name" placeholder="שם לטבלת שיאים" maxlength="12">
   <button class="btn" id="save-btn" onclick="saveAndRestart()">שמור ושחק שוב</button>
-  <div class="business-badge" style="margin-top:14px;">
+  <div class="business-badge" style="margin-top:clamp(6px,1.5vh,14px);">
     <div class="business-name">CoolDog</div>
     <div class="owner-info">ניב פינטו &nbsp;|&nbsp; 052-3060902</div>
   </div>
-  </div><!-- end go-col-left -->
+  </div><!-- /go-col-left -->
   <div id="go-col-right">
   <div id="leaderboard"><div style="text-align:center;color:rgba(255,255,255,0.3);font-size:13px;">טוען...</div></div>
-  </div><!-- end go-col-right -->
+  </div><!-- /go-col-right -->
 </div>
 
 <!-- ═══ ALL GAME LOGIC — plain JS, NO module, all functions global ═══ -->
@@ -278,6 +266,19 @@ function _initFirebase() {
   } catch(e) {}
 }
 _initFirebase();
+
+// ── Rotate Overlay ───────────────────────────────────────────────────────
+var _rotDismissed = false, _gameActive = false;
+function dismissRotate(){ _rotDismissed=true; document.getElementById("rotate-overlay").classList.remove("show"); }
+function _checkRotate(){
+  if(_gameActive){ document.getElementById("rotate-overlay").classList.remove("show"); return; }
+  var isTouch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+  var isPortrait=window.innerHeight>window.innerWidth;
+  document.getElementById("rotate-overlay").classList.toggle("show",isTouch&&isPortrait&&!_rotDismissed);
+}
+window.addEventListener("resize",_checkRotate);
+window.addEventListener("orientationchange",function(){setTimeout(_checkRotate,200);});
+setTimeout(_checkRotate,300);
 
 // ─── FULLSCREEN ────────────────────────────────────────────────────────────
 function toggleFullscreen() {
@@ -299,25 +300,6 @@ function _updateFsIcons(isFs) {
 }
 document.addEventListener("fullscreenchange", function() { _updateFsIcons(!!document.fullscreenElement); });
 document.addEventListener("webkitfullscreenchange", function() { _updateFsIcons(!!document.fullscreenElement); });
-
-// ─── ROTATE OVERLAY ───────────────────────────────────────────────────────
-var _rotateOverlayDismissed = false;
-var _gameIsActive = false;
-function dismissRotate() {
-  _rotateOverlayDismissed = true;
-  document.getElementById("rotate-overlay").classList.remove("show");
-}
-function _checkRotate() {
-  if (_gameIsActive) { document.getElementById("rotate-overlay").classList.remove("show"); return; }
-  var isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
-  var isPortrait = window.innerHeight > window.innerWidth;
-  var shouldShow = isTouch && isPortrait && !_rotateOverlayDismissed;
-  document.getElementById("rotate-overlay").classList.toggle("show", shouldShow);
-}
-window.addEventListener("resize", _checkRotate);
-window.addEventListener("orientationchange", function(){ setTimeout(_checkRotate, 200); });
-document.addEventListener("DOMContentLoaded", _checkRotate);
-setTimeout(_checkRotate, 300);
 
 // Firebase loaded separately via module script below — exposes _fbSave/_fbLoad
 </script>
@@ -686,21 +668,21 @@ function selectDog(t) {
 }
 
 function startGame() {
-  _gameIsActive = true; _rotateOverlayDismissed = false; _checkRotate();
+  _gameActive=true; _rotDismissed=false; _checkRotate();
   var diff = DIFFICULTY_PRESETS[G_DIFFICULTY] || DIFFICULTY_PRESETS.medium;
   PHYS.totalTime = diff.totalTime;
 
   document.getElementById('start-screen').classList.remove('active');
   document.getElementById('top-bar').style.display = 'flex';
   document.getElementById('zone-bar').style.display = 'flex';
-  document.getElementById('controls-layer').style.display = 'flex';
   document.getElementById('sound-controls').style.display = 'none'; // hide during game
+  document.getElementById('controls-layer').style.display = 'flex';
 
   if (!renderer) { initThree(); }
   else { resetWorld(); }
 
   G.score=0; G.timeLeft=PHYS.totalTime; G.paused=false; G.over=false; G.started=true;
-  G.velZ=0; G.vVel=0; G.dogRot=0; G.hasDisk=false; G.flying=false; G.jumping=false; G.onGround=false;
+  G.velZ=0; G.vVel=0; G.dogRot=0; _smoothCamRot=0; G.hasDisk=false; G.flying=false; G.jumping=false; G.onGround=false;
   G.airCatchAnim=0; G.airCatchScale=1;
   dogSpinTimer=0;
   musicStarted = false;
@@ -843,7 +825,7 @@ function endGame() {
   var names = {zippo:'זיפו', colin:'קולין', momo:'מומו'};
   document.getElementById('final-dog-name').textContent = names[G.dogType] || G.dogType;
   document.getElementById('game-over-screen').classList.add('active');
-  _gameIsActive = false; _rotateOverlayDismissed = false; setTimeout(_checkRotate, 300);
+  _gameActive=false; _rotDismissed=false; setTimeout(_checkRotate,300);
   loadLeaderboard();
 }
 
@@ -880,11 +862,12 @@ function initThree() {
   scene.background = new THREE.Color(0x3a6fba);
   scene.fog = new THREE.FogExp2(0x6a9fd8, 0.005);
 
-  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias:true });
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias:true, powerPreference:'high-performance', stencil:false, depth:true, alpha:false, premultipliedAlpha:false });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.setClearColor(0x3a6fba, 1);
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 600);
 
@@ -1020,7 +1003,7 @@ function buildUSDDNField() {
   var fieldMat = new THREE.MeshLambertMaterial({map:grassTex});
   var field = new THREE.Mesh(new THREE.PlaneGeometry(FW, FL, 4, 20), fieldMat);
   field.rotation.x=-Math.PI/2;
-  field.position.set(0,.005, FL/2 - EZ);   // centred so z=0 is throw start
+  field.position.set(0,0, FL/2 - EZ);   // centred so z=0 is throw start
   field.receiveShadow=true;
   scene.add(field);
 
@@ -1029,14 +1012,14 @@ function buildUSDDNField() {
   var ezFarTex = makeEndZoneTexture('#0a2a6e','#1040a0','FAR END ZONE');
   var ezFarMat = new THREE.MeshStandardMaterial({map:ezFarTex, roughness:.88});
   var ezFar = new THREE.Mesh(new THREE.PlaneGeometry(FW, EZ), ezFarMat);
-  ezFar.rotation.x=-Math.PI/2; ezFar.position.set(0,.008, FL-EZ+EZ/2-EZ);
+  ezFar.rotation.x=-Math.PI/2; ezFar.position.set(0,.01, FL-EZ+EZ/2-EZ);
   scene.add(ezFar);
 
   // Near end zone (owner side) — red
   var ezNearTex = makeEndZoneTexture('#6e0a0a','#a01010','OWNER ZONE');
   var ezNearMat = new THREE.MeshStandardMaterial({map:ezNearTex, roughness:.88});
   var ezNear = new THREE.Mesh(new THREE.PlaneGeometry(FW, EZ), ezNearMat);
-  ezNear.rotation.x=-Math.PI/2; ezNear.position.set(0,.008,-EZ+EZ/2);
+  ezNear.rotation.x=-Math.PI/2; ezNear.position.set(0,.01,-EZ+EZ/2);
   scene.add(ezNear);
 
   // ── White boundary lines ──────────────────────────────────────
@@ -1046,18 +1029,18 @@ function buildUSDDNField() {
   // Sidelines
   for(var sx of [-FW/2, FW/2]){
     var sl=new THREE.Mesh(new THREE.PlaneGeometry(.22, FL+.5), thickMat.clone());
-    sl.rotation.x=-Math.PI/2; sl.position.set(sx,.015, FL/2-EZ); scene.add(sl);
+    sl.rotation.x=-Math.PI/2; sl.position.set(sx,.03, FL/2-EZ); scene.add(sl);
   }
   // End lines (thick)
   for(var ez of [-EZ, FL-EZ]){
     var el=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.28), thickMat.clone());
-    el.rotation.x=-Math.PI/2; el.position.set(0,.015,ez); scene.add(el);
+    el.rotation.x=-Math.PI/2; el.position.set(0,.03,ez); scene.add(el);
   }
   // End zone back lines
   var ezl1=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.22),wMat.clone());
-  ezl1.rotation.x=-Math.PI/2; ezl1.position.set(0,.015,0); scene.add(ezl1);
+  ezl1.rotation.x=-Math.PI/2; ezl1.position.set(0,.03,0); scene.add(ezl1);
   var ezl2=new THREE.Mesh(new THREE.PlaneGeometry(FW+.5,.22),wMat.clone());
-  ezl2.rotation.x=-Math.PI/2; ezl2.position.set(0,.015,FL-EZ*2); scene.add(ezl2);
+  ezl2.rotation.x=-Math.PI/2; ezl2.position.set(0,.03,FL-EZ*2); scene.add(ezl2);
 
   // ── Distance lines with labels every 10m ─────────────────────
   var zoneColors = [0xffd700, 0xffa500, 0xff4400, 0xcc0000];
@@ -1067,7 +1050,7 @@ function buildUSDDNField() {
     // Coloured thick line
     var zMat=new THREE.MeshBasicMaterial({color:zoneColors[zi], transparent:true, opacity:.85});
     var zLine=new THREE.Mesh(new THREE.PlaneGeometry(FW,.32), zMat);
-    zLine.rotation.x=-Math.PI/2; zLine.position.set(0,.016,zz); scene.add(zLine);
+    zLine.rotation.x=-Math.PI/2; zLine.position.set(0,.04,zz); scene.add(zLine);
 
     // Distance marker signs on both sides
     for(var side of[-1,1]){
@@ -1089,7 +1072,7 @@ function buildUSDDNField() {
   for(var dz=2; dz<FL-EZ*2; dz+=3){
     var dash=new THREE.Mesh(new THREE.PlaneGeometry(.12,1.5),
       new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.45}));
-    dash.rotation.x=-Math.PI/2; dash.position.set(0,.014,dz); scene.add(dash);
+    dash.rotation.x=-Math.PI/2; dash.position.set(0,.05,dz); scene.add(dash);
   }
 }
 
@@ -1692,7 +1675,7 @@ function buildDiscShadow() {
   var mat = new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false, opacity:0});
   discShadow = new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.4), mat);
   discShadow.rotation.x = -Math.PI/2;
-  discShadow.position.y = 0.015;
+  discShadow.position.y = 0.055;
   scene.add(discShadow);
 }
 
@@ -1818,7 +1801,7 @@ function buildDogShadow() {
   });
   dogShadow = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), mat);
   dogShadow.rotation.x = -Math.PI/2;
-  dogShadow.position.y = 0.02;
+  dogShadow.position.y = 0.06;
   scene.add(dogShadow);
 }
 function buildDog() {
@@ -2254,11 +2237,10 @@ function buildFrisbee() {
 function initControls() {
   var knob = document.getElementById('joystick-knob');
   var cont = document.getElementById('joystick-container');
-  var joyTouchId = null;  // track which touch finger owns the joystick
+  var joyTouchId = null;
 
   function handleMove(e) {
     if (!G.input.joyActive) return;
-    // Find the touch that belongs to the joystick
     var t = null;
     if (e.touches) {
       for (var i=0; i<e.touches.length; i++) {
@@ -2276,13 +2258,12 @@ function initControls() {
     G.input.x=Math.cos(ang)*dist/54; G.input.y=Math.sin(ang)*dist/54; G.input.active=true;
   }
   function endJoy(e) {
-    // Only reset if the joystick's specific touch ended (not the throw button touch)
     if (e && e.changedTouches) {
       var joyEnded = false;
       for (var i=0; i<e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === joyTouchId) { joyEnded = true; break; }
       }
-      if (!joyEnded) return;  // throw button lifted — don't reset joystick
+      if (!joyEnded) return;
     }
     joyTouchId = null;
     G.input.joyActive=false; G.input.active=false;
@@ -2314,6 +2295,8 @@ var _camOffset = new THREE.Vector3();
 var _camTarget = new THREE.Vector3();
 var _camLookAt = new THREE.Vector3();
 var _camEuler  = new THREE.Euler();
+var _camLookAtCur = new THREE.Vector3();
+var _smoothCamRot = 0;
 var _frameCount = 0;
 var _camAirCatchOverride = false;  // dramatic camera during air catch
 function loop(ts) {
@@ -2324,24 +2307,32 @@ function loop(ts) {
   if (G.started && !G.over) tickParticles();
   else if (particles.length > 0) tickParticles();
   if (G.started && !G.paused && !G.over) gameStep(dt);
-  // Camera follow — reuse pre-allocated objects
+  // Camera follow — smooth rotation to prevent jitter
   if (dogRoot) {
+    // Smooth the camera rotation independently (lerp angle)
+    var rotDiff = G.dogRot - _smoothCamRot;
+    // Wrap to [-PI, PI] to avoid flip artefacts
+    while (rotDiff >  Math.PI) rotDiff -= Math.PI*2;
+    while (rotDiff < -Math.PI) rotDiff += Math.PI*2;
+    _smoothCamRot += rotDiff * 0.12;
+
     if (_camAirCatchOverride) {
-      // Dramatic pull-back during air catch: wider, higher angle
-      _camEuler.set(0, G.dogRot, 0);
+      _camEuler.set(0, _smoothCamRot, 0);
       _camOffset.set(0, 6.5, -13).applyEuler(_camEuler);
       _camTarget.copy(dogRoot.position).add(_camOffset);
-      camera.position.lerp(_camTarget, .06);  // slower lerp = cinematic
+      camera.position.lerp(_camTarget, .06);
     } else {
-      _camEuler.set(0, G.dogRot, 0);
+      _camEuler.set(0, _smoothCamRot, 0);
       _camOffset.set(0, 3.2, -7).applyEuler(_camEuler);
       _camTarget.copy(dogRoot.position).add(_camOffset);
-      camera.position.lerp(_camTarget, .1);
+      camera.position.lerp(_camTarget, .12);
     }
-    _camEuler.set(0, G.dogRot, 0);
+    // Smooth lookAt target too
+    _camEuler.set(0, _smoothCamRot, 0);
     _camLookAt.set(0, 0.8, 9).applyEuler(_camEuler);
     _camLookAt.add(dogRoot.position);
-    camera.lookAt(_camLookAt);
+    _camLookAtCur.lerp(_camLookAt, 0.18);
+    camera.lookAt(_camLookAtCur);
   }
   renderer.render(scene, camera);
 }
@@ -2845,7 +2836,7 @@ function updateAirCatchAnim(dt) {
 
 function resetWorld() {
   dogRoot.position.set(0,0,0); dogRoot.rotation.set(0,0,0);
-  G.dogRot=0; G.velZ=0; G.vVel=0; G.jumping=false;
+  G.dogRot=0; _smoothCamRot=0; G.velZ=0; G.vVel=0; G.jumping=false;
   G.airCatchAnim=0; G.airCatchScale=1;
   dogSpinTimer=0;
   _camAirCatchOverride = false;
